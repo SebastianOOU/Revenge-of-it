@@ -14,7 +14,7 @@ MainWindow::MainWindow(QWidget *parent)
     ui->graphicsView->setScene(escena);
 
     escena->addItem(personajeJugador);
-    personajeJugador->setPos(30,500);
+    personajeJugador->setPos(30,500);//
 
     personajeJugador->setFocus();
 }

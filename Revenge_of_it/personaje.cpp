@@ -18,7 +18,7 @@ Personaje::Personaje() {
     spriteImg.load(":/spritesIMG/Movimiento_personaje.png");
     //Toma una porcion de la imagen de sprites (un sprite de la matriz)
     sprite = spriteImg.copy(sprite_x_img,sprite_y_img,anchoSprite,altoSprite);
-    //Muestra la porcion de esprite en pantalla
+    //Muestra la porcion de esprite en pantalla.
     setPixmap(sprite);
 }
 

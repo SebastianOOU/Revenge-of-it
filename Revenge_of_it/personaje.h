@@ -13,10 +13,10 @@ class Personaje : public QObject, public QGraphicsPixmapItem {
         QPixmap spriteImg;
         QPixmap sprite;
         string nombre;
-        //Dimensiones del sprite a mostrar
+        //Dimensiones del sprite a mostrar.
         int altoSprite;
         int anchoSprite;
-        //Posiciones del sprite en la pantalla
+        //Posiciones del sprite en la pantalla.
         qreal posicionX;
         qreal posicionY;
         //Posiciones del sprite en la imagen de sprites
