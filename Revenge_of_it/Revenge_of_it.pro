@@ -11,10 +11,12 @@ CONFIG += c++17
 SOURCES += \
     main.cpp \
     mainwindow.cpp \
+    niveljuego.cpp \
     personaje.cpp
 
 HEADERS += \
     mainwindow.h \
+    niveljuego.h \
     personaje.h
 
 FORMS += \
