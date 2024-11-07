@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/">
+        <file>spritesIMG/Movimiento_personaje.png</file>
+    </qresource>
+</RCC>
