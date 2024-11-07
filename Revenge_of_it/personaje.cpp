@@ -14,7 +14,7 @@ Personaje::Personaje() {
     sprite_y_img = 0;
     //Se le indica que el sprite puede ser interactuado
     setFlag(QGraphicsItem::ItemIsFocusable);
-    //Se esta pasando la direcion de la imagen de sprites
+    //Se esta pasando la direcion de la imagen de sprites.
     spriteImg.load(":/spritesIMG/Movimiento_personaje.png");
     //Toma una porcion de la imagen de sprites (un sprite de la matriz)
     sprite = spriteImg.copy(sprite_x_img,sprite_y_img,anchoSprite,altoSprite);
