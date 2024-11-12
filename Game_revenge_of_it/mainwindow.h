@@ -3,6 +3,10 @@
 
 #include <QMainWindow>
 #include "personaje.h"
+#include "niveljuego.h"
+#include "obstaculos.h"
+#include "enemigo.h"
+
 QT_BEGIN_NAMESPACE
 namespace Ui {
 class MainWindow;
@@ -15,10 +19,13 @@ class MainWindow : public QMainWindow
 
 public:
     MainWindow(QWidget *parent = nullptr);
-    Personaje *personajeJugador = new Personaje;
+
     ~MainWindow();
 
+private slots:
+    void nuevaEscena();
 private:
+
     Ui::MainWindow *ui;
 };
 #endif // MAINWINDOW_H

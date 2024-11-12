@@ -3,8 +3,10 @@
 #include <QObject>
 #include <QGraphicsPixmapItem>
 #include <QPixmap>
+#include <QGraphicsView>
 #include <QKeyEvent>
 #include <QTimer>
+#include <QGraphicsRectItem>
 using namespace  std;
 
 class Personaje : public QObject, public QGraphicsPixmapItem {
@@ -13,6 +15,9 @@ class Personaje : public QObject, public QGraphicsPixmapItem {
 private:
     QPixmap spriteImg;
     QPixmap sprite;
+
+    QPixmap spriteImgVida;
+    QPixmap spriteVida;
     string nombre;
     //Dimensiones del sprite a mostrar.
     int altoSprite;
@@ -27,9 +32,17 @@ private:
     int salud;
     //Contar la cantidad de sprites que se debe mostrar
     int contador = 0;
+
+    QGraphicsView *vista;
+
+    QTimer *timermovimiento;
+    bool enElAire;
+    int velocidadY;
+
 public slots:
 
 public:
+    Personaje(QGraphicsView *vista);
     Personaje();
     bool flechaDe,flechaIz,flechaAr,espacio;
     void keyPressEvent(QKeyEvent *event);
@@ -40,6 +53,10 @@ public:
     void saltar();
     void redicirSalud();
     void mostSprite(int);
+    void aplicarFisica();
+
+signals:
+    void llegarLimiteScena();
 
 };
 
