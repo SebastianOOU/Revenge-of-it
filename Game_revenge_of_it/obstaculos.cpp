@@ -1,5 +1,4 @@
 #include "obstaculos.h"
-#include <fstream>
 #include <string>
 #include <QDebug>
 
@@ -11,6 +10,7 @@ Obstaculos::Obstaculos() {
     anchoSprite = 0;
     posicionX = 0;
     posicionY = 0;
+    cantidadObs = 6;
 }
 
 
@@ -31,28 +31,36 @@ void Obstaculos::extraerDatosSprites(int _nivel, int _numScena){
         direccionNivel = ":/archivosDatosJuego/nivel3.txt";
     }
 
-    archivo.open("C:/Juego Revenge of it/Archivos/Game_revenge_of_it/archivosDatosJuego/nivel1.txt", ios::in);
-    _archivo.open(direccionNivel, ios::in);
+    archivo.open("direccionDatos.txt", ios::in);
+    _archivo.open("nivel1.txt", ios::in);
 
-    if(!archivo.is_open() || !_archivo.is_open()){
+    if(!archivo.is_open()){
 
-        cout << "No se pudo abrir el archivo..." << endl;
+        qDebug() << "No se pudo abrir el archivo...1";
+        return;
+    }
+
+    if(!_archivo.is_open()){
+
+        qDebug() << "No se pudo abrir el archivo...2";
+        return;
     }
 
     while(getline(archivo,datos)){
-        cout << "Leyendo línea: " << datos << endl;
+        qDebug() << "Leyendo línea: " << datos ;
         direccionImg = datos;
 
     }
     datos = "";
     archivo.close();
-
+    qDebug() << direccionImg;
     int contador = 0,  b;
     bool opcion = false;
 
     while(getline(_archivo,datos)){
+        qDebug() << "Leyendo línea: " << datos ;
 
-        if(contador == 0){
+        if(contador == 0 || contador == 4){
 
             char a = datos[2];
             b = a - '0';
@@ -68,7 +76,7 @@ void Obstaculos::extraerDatosSprites(int _nivel, int _numScena){
 
         if(opcion && contador >= 1){
 
-            capturarPosiciones(_datos);
+            capturarPosiciones(datos);
         }
 
         if (contador == cantidadObs){
@@ -87,11 +95,11 @@ void Obstaculos::capturarPosiciones(string _datos){
 
     int longitud = _datos.size();
     string datos;
-
+    qDebug() << _datos;
     for(int i = 0; i < longitud; i++){
 
         if(_datos[i] == ':'){
-
+            qDebug() << datos;
             posicionX = stoi(datos);
             datos = "";
 
@@ -99,13 +107,14 @@ void Obstaculos::capturarPosiciones(string _datos){
 
             datos += _datos[i];
         }
-
+        qDebug() << datos;
         if(i == longitud - 1){
 
             posicionY = stoi(datos);
         }
     }
-
+    qDebug() << cantidadObs;
+    qDebug() << "X " << posicionX << " Y " << posicionY;
     datosSprites[posicionX] = posicionY;
 }
 

@@ -21,7 +21,7 @@ Enemigo::Enemigo(int x, int y, int ancho, int alto) : estado(0){
 
     srand(static_cast<unsigned int>(time(0)));
 
-    spriteImg.load(":/spritesIMG/movimientoEnemigoPrincipal.png");
+    spriteImg.load(":/spritesIMG/movimientoEnemigoIt.png");
 
     sprite_x_img = 0;
     sprite_y_img = 0;
@@ -68,30 +68,12 @@ void Enemigo::actualizarSprite(){
     }
 }
 
-void Enemigo::mostSprite(int _posicion, int _posicionID){
+void Enemigo::mostSprite(int _posicion){
 
     //Se captura la posicion dentro de la imagen de sprites
     sprite_y_img = _posicion;
     //Se multiplica por el acho del sprite (mostrar el sprite siguiente)
     sprite_x_img = anchoSprite * contador;
-
-    if(_posicionID == 1){
-        if (contador == 2){
-            anchoSprite = 54;
-        }else if(contador == 3){
-            anchoSprite = 50;
-        }else if(contador == 4){
-            anchoSprite = 55;
-        }else if(contador == 5){
-            anchoSprite = 55;
-        }else if(contador == 6){
-            anchoSprite = 55;
-        }else if(contador == 7){
-            anchoSprite = 71;
-        }else{
-            anchoSprite = 52;
-        }
-    }
     //Toma una porcion de la imagen de sprites (un sprite de la matriz)
     sprite = spriteImg.copy(sprite_x_img,sprite_y_img,anchoSprite,altoSprite);
     //Muestra la porcion de esprite en pantalla
@@ -106,14 +88,14 @@ void Enemigo::moverAdelante(){
 
     posicionX += 5;
     setPos(posicionX, posicionY);
-    mostSprite(0,1);
+    mostSprite(0);
 }
 
 void Enemigo::moverAtras(){
 
     posicionX -= 5;
     setPos(posicionX,posicionY);
-    mostSprite(90,2);
+    mostSprite(100);
 }
 
 //Saltar pendiente

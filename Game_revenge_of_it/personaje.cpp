@@ -1,11 +1,12 @@
 #include "personaje.h"
 #include <QDebug>
+
 Personaje::Personaje(QGraphicsView *vista):vista(vista) {
 
-    flechaDe = false; flechaIz = false; flechaAr = false;
+    moverAr = false; moverDe = false; moverIz = false;
     //Variables dimesiones sprite
-    altoSprite = 78;
-    anchoSprite = 49;
+    altoSprite = 80;
+    anchoSprite = 50;
     //Variables posicion del sprite en la pantalla.
     posicionX = 30;
     posicionY = 565;
@@ -39,7 +40,7 @@ void Personaje::mostSprite(int _posicion){
     //Se contabiliza la cantidad de sprites
     contador++;
     //Si ya se recorrieron todos los sprites reinicio
-    if(contador == 7){contador = 0;}
+    if(contador == 8){contador = 0;}
 }
 
 Personaje::Personaje(){
@@ -51,122 +52,148 @@ Personaje::Personaje(){
     setPixmap(spriteVida);
 
 }
+
 void Personaje::camIzquierda(){
 
-    if(flechaIz){
-        //Se resta para mover hacia izquierda
-        posicionX += -5;
-        //Se pasa posicion en la imagen de sprites
-        mostSprite(78);
-        //Verifica si hay un colision con un obstaculo TODAVIA EN PRUEBAS.
-        /*for(QGraphicsItem *item : vista->scene()->items()){
-            if(QGraphicsRectItem *bstaculos = dynamic_cast<QGraphicsRectItem*>(item)){
-                if(this->collidesWithItem(bstaculos)){
-                    posicionY -= 5;
-                }
-            }
-        }*/
+    //Se resta para mover hacia izquierda
+    posicionX -= 8;
+    //Se pasa posicion en la imagen de sprites
+    mostSprite(80);
+
+    bool a = false; int Y;
+
+    verficarSobrePlataforma(posicionX, Y, a);
+
+    if(!a){
+        enElAire = true;
     }
+
+    if(posicionX <= 10){
+        posicionX += 8;
+    }
+
     //Definimos la posicion del sprite en la pantalla
     setPos(posicionX,posicionY);
-    flechaIz = false;
 
+    verfColisionPlataforma();
 
+    moverIz = false;
 }
 
 void Personaje::camDerecha(){
 
-    if(flechaDe){
-        //Se suma para mover hacia derecha
-        posicionX += 5;
-        //Se pasa posicion en la imagen de sprites
-        mostSprite(0);
+    //Se suma para mover hacia derecha
+    posicionX += 8;
+    //Se pasa posicion en la imagen de sprites
+    mostSprite(0);
 
-        if(posicionX > 1220){
-            qDebug() << "Hola";
-            emit llegarLimiteScena();
-        }
-
-        //Verifica si hay un colision con un obstaculo TODAVIA EN PRUEBAS.
-        /*for(QGraphicsItem *item : vista->scene()->items()){
-            if(QGraphicsRectItem *bstaculos = dynamic_cast<QGraphicsRectItem*>(item)){
-                if(this->collidesWithItem(bstaculos)){
-                    posicionY += 10;
-                    qDebug() << "Hola";
-                }
-            }
-        }*/
-
+    if(posicionX > 1220){
+        qDebug() << "Hola";
+        emit llegarLimiteScena();
     }
+
+    bool a = false; int Y;
+
+    verficarSobrePlataforma(posicionX, Y, a);
+
+    if(!a){
+        enElAire = true;
+    }
+
     //Definimos la posicion del sprite en la pantalla
     setPos(posicionX,posicionY);
-    flechaDe = false;
 
+    verfColisionPlataforma();
 
+    moverDe = false;
+}
+
+void Personaje::capturarItemsPlataformas(QGraphicsRectItem *_items, int platX , int platY){
+
+    itemsPlataformas.push_back(_items);
+    posicionPlatafromas[platX] = platY;
 }
 
 void Personaje::saltar(){
      // Solo permite saltar si está en el suelo
     if(!enElAire){
         // Velocidad inicial hacia arriba
-        velocidadY = -15;
+        velocidadY = -18;
         // Marca que el personaje está en el aire
         enElAire = true;
 
-        //Verifica si hay un colision con un obstaculo TODAVIA EN PRUEBAS.
-        /*for(QGraphicsItem *item : vista->scene()->items()){
-            if(QGraphicsRectItem *bstaculos = dynamic_cast<QGraphicsRectItem*>(item)){
-                if(this->collidesWithItem(bstaculos)){
-                    posicionX -= 5;
-                }
-            }
+        /*if(posicionY >= 520){
+            posicionY -= 1;
         }*/
     }
+
+    verfColisionPlataforma();
+
+    moverAr = false;
 }
 
 void Personaje::moverPersonaje(int _tecla){
+
     //Se recibe el valor de la tecla y se evalua
     switch (_tecla) {
     //Si el valor de la tecla es igual "<---"
-        case Qt::Key_Left:
-            //True para Izquierda
-            flechaIz = true;
+        case Qt::Key_A:
+
+            moverIz = true;
             camIzquierda();
             break;
-        //Si el valor de la tecla es igual "--->"
-        case Qt::Key_Right:
-            //True para Derecha
-            flechaDe = true;
+
+        case Qt::Key_D:
+
+            moverDe = true;
             camDerecha();
-            break;
-        //Si el valor de la tecla es igual "^"
-        case Qt::Key_Up:
-            //True para arriba (saltar)
-            flechaAr = true;
+            break;    
+
+        case Qt::Key_W:
+
+            moverAr = true;
             saltar();
             break;
+
         default:
             break;
     }
 }
 
 void Personaje::aplicarFisica(){
+
     if (enElAire) {
         // Gravedad que aumenta la velocidadY
         velocidadY += 1;
         posicionY += velocidadY;
 
         // Verifica si llegó al suelo
-        if (posicionY >= 565) {
+        bool a = false; int Y;
+        verficarSobrePlataforma(posicionX, Y, a);
+
+        if(a && posicionY >= Y - 80 && posicionY <= Y - 50){
+
+            posicionY = Y - 80;
+            velocidadY = 0;
+            enElAire = false;
+
+        }else if(posicionY >= 565){
+
+            posicionY = 565;
+            velocidadY = 0;
+            enElAire = false;
+
+        }else if(a && posicionY >= Y  && posicionY <= Y + 20){
+
             posicionY = 565;
             velocidadY = 0;
             enElAire = false;
         }
     }
-
     // Actualiza la posición en pantalla
     setPos(posicionX, posicionY);
 }
+
 void Personaje::keyPressEvent(QKeyEvent *event){
     //Capturo el valor de la tecla precionada
     int tecla = event->key();
@@ -174,4 +201,50 @@ void Personaje::keyPressEvent(QKeyEvent *event){
     moverPersonaje(tecla);
 }
 
+void Personaje::verfColisionPlataforma(){
 
+    for(auto itemObs = itemsPlataformas.begin(); itemObs != itemsPlataformas.end(); itemObs++){
+
+        if(this->collidesWithItem(*itemObs)){
+            bool sobre = false; int Y;
+            if(moverDe){
+
+                verficarSobrePlataforma(posicionX,Y,sobre);
+
+                if(!sobre){
+                    posicionX -= 8;
+                    qDebug() << "Colision detectada Derecha: " << " X: " << posicionX <<  " Y: " << posicionY;
+                }
+            }
+
+            if(moverIz){
+
+                verficarSobrePlataforma(posicionX,Y,sobre);
+
+                if(!sobre){
+                    posicionX += 8;
+                    qDebug() << "Colision detectada Izquierda: " << " X: " << posicionX <<  " Y: " << posicionY;
+                }
+            }
+
+            if(moverAr){
+                aplicarFisica();
+                qDebug() << "Colision detectada Arriba: " << " X: " << posicionX <<  " Y: " << posicionY;
+            }
+        }
+    }
+}
+
+void Personaje::verficarSobrePlataforma(int X, int &Y, bool &sobre){
+
+
+    for(const auto& posiciones : posicionPlatafromas){
+
+        if(X >= posiciones.first - 30 && X <= posiciones.first + 200){
+
+            sobre = true;
+            Y = posiciones.second;
+            break;
+        }
+    }
+}
