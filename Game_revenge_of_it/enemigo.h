@@ -24,11 +24,11 @@ class Enemigo : public QObject, public QGraphicsPixmapItem{
        const float gravedad = 0.5f;
        bool enElAire;
     public:
-        Enemigo(int x = 1000, int = 565, int ancho = 52, int alto = 90);
+        Enemigo(int x = 1000, int = 565, int ancho = 70, int alto = 100);
         void dimensionarSprite(int, int);
     public slots:
         void actualizarSprite();
-        void mostSprite(int,int);
+        void mostSprite(int);
         //void aplicarFisica();
         void moverAdelante();
         void moverAtras();

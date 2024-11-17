@@ -2,6 +2,7 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
+#include "menuniveles.h"
 #include "personaje.h"
 #include "niveljuego.h"
 #include "obstaculos.h"
@@ -23,7 +24,9 @@ public:
     ~MainWindow();
 
 private slots:
-    void nuevaEscena();
+    //void nuevaEscena();
+    void on_pushButton_clicked();
+
 private:
 
     Ui::MainWindow *ui;

@@ -5,6 +5,8 @@
 #include <QGraphicsScene>
 #include <QGraphicsView>
 #include <QWidget>
+#include <QImage>
+#include <QBrush>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -12,39 +14,8 @@ MainWindow::MainWindow(QWidget *parent)
 {
     ui->setupUi(this);
 
-    QGraphicsScene *escena = new QGraphicsScene(this);
-    escena->setSceneRect(0,0,1280,720);
-    ui->graphicsView->setScene(escena);
 
-    NivelJuego *nivelJuego = new NivelJuego();
-    escena->addItem(nivelJuego);
-    nivelJuego->setPos(0,0);
-
-    Personaje *personajeJugador = new Personaje(ui->graphicsView);
-    escena->addItem(personajeJugador);
-    personajeJugador->setPos(30,565);
-    personajeJugador->setFocus();
-
-    Personaje *vida = new Personaje();
-    escena->addItem(vida);
-    vida->setPos(30,10);
-
-    Enemigo *enemigo = new Enemigo();
-    enemigo->setPos(800,565);
-
-    escena->addItem(enemigo);
-
-    Obstaculos obstaculos;
-    obstaculos.extraerDatosSprites(1,1);
-
-    /*for(auto& posiciones : obstaculos.datosSprites){
-
-        QGraphicsPixmapItem *obstaculo = new QGraphicsPixmapItem(QPixmap(":/spritesIMG/fondoImgLevel 1.png"));
-        obstaculo->setPos(posiciones.first, posiciones.second);
-        escena->addItem(obstaculo);
-    }*/
-
-    QGraphicsPixmapItem *obstaculo1 = new QGraphicsPixmapItem(QPixmap(":/spritesIMG/obstaculo_bloques.png"));
+    /*QGraphicsPixmapItem *obstaculo1 = new QGraphicsPixmapItem(QPixmap(":/spritesIMG/obstaculo_bloques.png"));
     obstaculo1->setPos(540, 500);
     escena->addItem(obstaculo1);
 
@@ -56,7 +27,7 @@ MainWindow::MainWindow(QWidget *parent)
     obstaculo3->setPos(180, 450);
     escena->addItem(obstaculo3);
 
-    /*QGraphicsRectItem *rectangu1o1 = new QGraphicsRectItem(540, 500, 200,50);
+    QGraphicsRectItem *rectangu1o1 = new QGraphicsRectItem(540, 500, 200,50);
     rectangu1o1->setBrush(Qt::gray);
     escena->addItem(rectangu1o1);
 
@@ -69,10 +40,10 @@ MainWindow::MainWindow(QWidget *parent)
     escena->addItem(rectangu1o3);*/
 
 
-    connect(personajeJugador, &Personaje::llegarLimiteScena,this,&MainWindow::nuevaEscena);
+   //onnect(personajeJugador, &Personaje::llegarLimiteScena,this,&MainWindow::nuevaEscena);
 }
 
-void MainWindow::nuevaEscena(){
+/*void MainWindow::nuevaEscena(){
 
     for(QGraphicsItem *item : this->ui->graphicsView->scene()->items()){
         if(QGraphicsPixmapItem *bstaculos = dynamic_cast<QGraphicsPixmapItem*>(item)){
@@ -114,10 +85,18 @@ void MainWindow::nuevaEscena(){
     bstaculos3->setPos(180,500);
     escena->addItem(bstaculos3);
 
-}
+}*/
 MainWindow::~MainWindow()
 {
     delete ui;
 }
 
+
+
+void MainWindow::on_pushButton_clicked(){
+
+    menuNiveles *MenuNiveles = new menuNiveles(this);
+    MenuNiveles->show();
+
+}
 

@@ -4,8 +4,8 @@
         <file>archivosDatosJuego/direccionDatos.txt</file>
         <file>spritesIMG/obstaculo_bloques.png</file>
         <file>spritesIMG/fondoImgLevel 1.png</file>
-        <file>spritesIMG/movimientoPersonaje.png</file>
         <file>spritesIMG/vidaPersonaje.png</file>
-        <file>spritesIMG/movimientoEnemigoPrincipal.png</file>
+        <file>spritesIMG/movimientoEnemigoIt.png</file>
+        <file>spritesIMG/movimientoPersonaje.png</file>
     </qresource>
 </RCC>

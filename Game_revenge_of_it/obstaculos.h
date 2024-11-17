@@ -1,7 +1,7 @@
 #ifndef OBSTACULOS_H
 #define OBSTACULOS_H
 #include <iostream>
-
+#include <fstream>
 #include <map>
 using namespace std;
 
