@@ -9,8 +9,9 @@ const int velocidadSaltoInicial = -7;
 // Gravedad constante (se puede ajustar)
 const float gravedad = 0.3;
 
-Enemigo::Enemigo(int x, int y, int ancho, int alto) : estado(0){
+Enemigo::Enemigo(QGraphicsView *_vista,int x, int y, int ancho, int alto) :vista(_vista){
 
+    estado = 0;
     contador = 0;
     velocidadY = 0;
     enElAire = false;
@@ -18,6 +19,9 @@ Enemigo::Enemigo(int x, int y, int ancho, int alto) : estado(0){
     posicionX = x;
     posicionY = y;
     anchoSprite = ancho;
+
+    movDerecha = false;
+    movIzquierda = false;
 
     srand(static_cast<unsigned int>(time(0)));
 
@@ -33,6 +37,10 @@ Enemigo::Enemigo(int x, int y, int ancho, int alto) : estado(0){
     timerMovimiento = new QTimer(this);
     connect(timerMovimiento,&QTimer::timeout,this,&Enemigo::actualizarSprite);
     timerMovimiento->start(140);
+
+    timerArma = new QTimer(this);
+    connect(timerArma,&QTimer::timeout,this,&Enemigo::activarArma);
+    timerArma->start(2000);
 }
 
 void Enemigo::dimensionarSprite(int _nuevoAncho, int _nuevoAlto){
@@ -81,7 +89,7 @@ void Enemigo::mostSprite(int _posicion){
     //Se contabiliza la cantidad de sprites
     contador++;
     //Si ya se recorrieron todos los sprites reinicio
-    if(contador == 7){contador = 0;}
+    if(contador == 7){contador = 0; }
 }
 
 void Enemigo::moverAdelante(){
@@ -89,6 +97,9 @@ void Enemigo::moverAdelante(){
     posicionX += 5;
     setPos(posicionX, posicionY);
     mostSprite(0);
+
+    movDerecha = true;
+    movIzquierda = false;
 }
 
 void Enemigo::moverAtras(){
@@ -96,6 +107,9 @@ void Enemigo::moverAtras(){
     posicionX -= 5;
     setPos(posicionX,posicionY);
     mostSprite(100);
+
+    movDerecha = false;
+    movIzquierda = true;
 }
 
 //Saltar pendiente
@@ -104,4 +118,10 @@ void Enemigo::cambiarEstado(int _nuevoEstado){
     estado = _nuevoEstado;
 }
 
+void Enemigo::activarArma(){
+
+    Armas *nuevaArma = new Armas(vista,movDerecha,movIzquierda);
+    nuevaArma->lanzarArma(posicionX,posicionY);
+    vista->scene()->addItem(nuevaArma);
+}
 //Aplicar fisica pendiente
