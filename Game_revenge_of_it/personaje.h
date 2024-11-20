@@ -9,12 +9,16 @@
 #include <QGraphicsRectItem>
 #include <vector>
 #include <map>
+#include "armas.h"
 using namespace  std;
 
 class Personaje : public QObject, public QGraphicsPixmapItem {
 
         Q_OBJECT
     private:
+       // Armas *nuevaArma ;
+        QGraphicsView *vista;
+
         QPixmap spriteImg;
         QPixmap sprite;
 
@@ -37,7 +41,7 @@ class Personaje : public QObject, public QGraphicsPixmapItem {
 
         bool moverIz, moverDe, moverAr;
 
-        QGraphicsView *vista;
+
 
         QTimer *timermovimiento;
         bool enElAire;
@@ -61,6 +65,7 @@ class Personaje : public QObject, public QGraphicsPixmapItem {
         void saltar();
 
         void activarhabilidad();
+        void activarArma();
         void redicirSalud();
 
         void mostSprite(int);

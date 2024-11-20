@@ -2,25 +2,43 @@
 #define MENUNIVELES_H
 
 #include <QMainWindow>
-#include "nivel1.h"
+#include "niveljuego.h"
+#include "personaje.h"
+#include "enemigo.h"
+#include "obstaculos.h"
 
 namespace Ui {
 class menuNiveles;
 }
 
-class menuNiveles : public QMainWindow
-{
-    Q_OBJECT
+class menuNiveles : public QMainWindow{
 
-public:
-    explicit menuNiveles(QWidget *parent = nullptr);
-    ~menuNiveles();
+        Q_OBJECT
 
-private slots:
-    void on_pushButton_clicked();
+    public:
+        explicit menuNiveles(QWidget *parent = nullptr);
 
-private:
-    Ui::menuNiveles *ui;
+        void menuBotonesNiveles();
+
+
+        ~menuNiveles();
+
+    private:
+
+        int _nivelJuego;
+        int _numScena;
+
+        Personaje *nuevoPersonaje;
+        QGraphicsTextItem *textValorPuntaje;
+
+        Ui::menuNiveles *ui;
+
+    public slots:
+
+        void cambioEscenaDentroNivelJuego();
+        void nuevaEscenaNivelJuego();
+
+    private slots:
 };
 
 #endif // MENUNIVELES_H
