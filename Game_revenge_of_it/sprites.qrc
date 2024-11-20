@@ -7,5 +7,7 @@
         <file>spritesIMG/vidaPersonaje.png</file>
         <file>spritesIMG/movimientoEnemigoIt.png</file>
         <file>spritesIMG/movimientoPersonaje.png</file>
+        <file>spritesIMG/animacionExplosion.png</file>
+        <file>spritesIMG/imagen_bomba.png</file>
     </qresource>
 </RCC>

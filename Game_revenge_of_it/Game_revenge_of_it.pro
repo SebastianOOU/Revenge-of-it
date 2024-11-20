@@ -9,28 +9,27 @@ CONFIG += c++17
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 SOURCES += \
+    armas.cpp \
     enemigo.cpp \
     main.cpp \
     mainwindow.cpp \
     menuniveles.cpp \
-    nivel1.cpp \
     niveljuego.cpp \
     obstaculos.cpp \
     personaje.cpp
 
 HEADERS += \
+    armas.h \
     enemigo.h \
     mainwindow.h \
     menuniveles.h \
-    nivel1.h \
     niveljuego.h \
     obstaculos.h \
     personaje.h
 
 FORMS += \
     mainwindow.ui \
-    menuniveles.ui \
-    nivel1.ui
+    menuniveles.ui
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin
