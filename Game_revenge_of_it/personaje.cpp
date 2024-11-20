@@ -1,18 +1,23 @@
 #include "personaje.h"
 #include <QDebug>
 
-Personaje::Personaje(QGraphicsView *vista):vista(vista) {
+Personaje::Personaje(QGraphicsView *_vista):vista(_vista) {
+
 
     moverAr = false; moverDe = false; moverIz = false;
+
     //Variables dimesiones sprite
     altoSprite = 80;
     anchoSprite = 50;
+
     //Variables posicion del sprite en la pantalla.
     posicionX = 30;
     posicionY = 565;
+
     //Variables posicion del sprite en la imagen de sprites
     sprite_x_img = 0;
     sprite_y_img = 0;
+
     //Se le indica que el sprite puede ser interactuado
     setFlag(QGraphicsItem::ItemIsFocusable);
     //Se esta pasando la direcion de la imagen de sprites.
@@ -77,7 +82,8 @@ void Personaje::camIzquierda(){
 
     verfColisionPlataforma();
 
-    moverIz = false;
+    moverIz = true;
+    moverDe = false;
 }
 
 void Personaje::camDerecha(){
@@ -105,7 +111,8 @@ void Personaje::camDerecha(){
 
     verfColisionPlataforma();
 
-    moverDe = false;
+    moverDe = true;
+    moverIz = false;
 }
 
 void Personaje::capturarItemsPlataformas(QGraphicsRectItem *_items, int platX , int platY){
@@ -147,12 +154,17 @@ void Personaje::moverPersonaje(int _tecla){
 
             moverDe = true;
             camDerecha();
-            break;    
+           break;
 
         case Qt::Key_W:
 
             moverAr = true;
             saltar();
+            break;
+
+        case Qt::Key_Space:
+
+            activarArma();
             break;
 
         default:
@@ -199,6 +211,14 @@ void Personaje::keyPressEvent(QKeyEvent *event){
     int tecla = event->key();
     //Se llama la funcion y se pasa el valor de la tecla
     moverPersonaje(tecla);
+}
+
+void Personaje::activarArma(){
+
+    Armas *nuevaArma = new Armas(vista, moverDe, moverIz);
+    nuevaArma->lanzarArma(posicionX, posicionY);
+    vista->scene()->addItem(nuevaArma);;
+    nuevaArma->setPos(200,200);
 }
 
 void Personaje::verfColisionPlataforma(){
