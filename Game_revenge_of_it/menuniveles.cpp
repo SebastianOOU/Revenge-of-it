@@ -12,8 +12,9 @@ menuNiveles::menuNiveles(QWidget *parent)
 {
     ui->setupUi(this);
 
-    menuBotonesNiveles();
+    vida = false;
 
+    menuBotonesNiveles();
 }
 
 void menuNiveles::nuevaEscenaNivelJuego(/*int _nivelJuego, int _numScena*/){
@@ -35,6 +36,8 @@ void menuNiveles::nuevaEscenaNivelJuego(/*int _nivelJuego, int _numScena*/){
     escenaNivelJuego->setSceneRect(0,0,1280,720);
     ui->graphicsView->setScene(escenaNivelJuego);
 
+
+
     QPixmap imagenFondo(direccionImgFondo);
 
     QGraphicsPixmapItem *imagenFondoJuego = new QGraphicsPixmapItem(imagenFondo);
@@ -45,7 +48,19 @@ void menuNiveles::nuevaEscenaNivelJuego(/*int _nivelJuego, int _numScena*/){
     nuevoPersonaje->setPos(60,75);
     nuevoPersonaje->setFocus();
 
-    Enemigo *nuevoEnemigo = new Enemigo(ui->graphicsView);
+    if(!vida){
+
+        vidaPersonaje = new Personaje();
+        escenaNivelJuego->addItem(vidaPersonaje);
+        vidaPersonaje->setPos(10,5);
+
+        vida = true;
+    }
+
+    escenaNivelJuego->addItem(vidaPersonaje);
+    vidaPersonaje->setPos(10,5);
+
+    nuevoEnemigo = new Enemigo(ui->graphicsView);
     nuevoEnemigo->setPos(800,550);
     escenaNivelJuego->addItem(nuevoEnemigo);
 
@@ -68,25 +83,27 @@ void menuNiveles::nuevaEscenaNivelJuego(/*int _nivelJuego, int _numScena*/){
     }
 
     connect(nuevoPersonaje, &Personaje::llegarLimiteScena,this,&menuNiveles::cambioEscenaDentroNivelJuego);
+    connect(nuevoPersonaje, &Personaje::reducirVida,this,&menuNiveles::reducirVidas);
+    connect(vidaPersonaje, &Personaje::personajeSinSalud, this, &menuNiveles::mostGameOver);
 }
 
 void menuNiveles::cambioEscenaDentroNivelJuego(){
 
     _numScena = 2;
 
-    for(QGraphicsItem *item : this->ui->graphicsView->scene()->items()){
-        if(QGraphicsPixmapItem *bstaculos = dynamic_cast<QGraphicsPixmapItem*>(item)){
+   /*for(QGraphicsItem *item : this->ui->graphicsView->scene()->items()){
+        if(Enemigo *bstaculos = dynamic_cast<Enemigo*>(item)){
             this->ui->graphicsView->scene()->removeItem(bstaculos);
+            delete bstaculos;
         }
-    }
+    }*/
+
+    delete nuevoEnemigo;
 
     nuevaEscenaNivelJuego();
 }
 
-menuNiveles::~menuNiveles()
-{
-    delete ui;
-}
+
 
 void menuNiveles::menuBotonesNiveles(){
 
@@ -127,4 +144,63 @@ void menuNiveles::menuBotonesNiveles(){
     _numScena = 1;
 
     connect(botonNivel1, &QPushButton::clicked, this, &menuNiveles::nuevaEscenaNivelJuego);
+}
+
+void menuNiveles::mostGameOver(){
+
+    for(QGraphicsItem *item : this->ui->graphicsView->scene()->items()){
+        if(QGraphicsPixmapItem*bstaculos = dynamic_cast<QGraphicsPixmapItem*>(item)){
+            this->ui->graphicsView->scene()->removeItem(bstaculos);
+
+        }
+    }
+
+    QGraphicsScene *nuevoGameOverScene = new QGraphicsScene();
+    nuevoGameOverScene->setSceneRect(0, 50, 800, 500);
+    ui->graphicsView->setScene(nuevoGameOverScene);
+
+    QPixmap imagenFondo(":/spritesIMG/GameOver.png");
+
+    QGraphicsPixmapItem *imagenFondoOver = new QGraphicsPixmapItem(imagenFondo);
+    nuevoGameOverScene->addItem(imagenFondoOver);
+
+    QFont font1("Arial",20, QFont::Bold);
+
+    QGraphicsTextItem *textScore = new QGraphicsTextItem("Score:");
+    textScore->setPos(150, 350);
+    textScore->setFont(font1);
+    nuevoGameOverScene->addItem(textScore);
+
+    QFont font2("Arial",20);
+
+    QString nom = "Sebastian, ¡tú salud se ha terminado!";
+
+    QGraphicsTextItem *textInformacion = new QGraphicsTextItem(nom);
+    textInformacion->setPos(150, 250);
+    textInformacion->setFont(font2);
+    nuevoGameOverScene->addItem(textInformacion);
+
+    QPushButton *botonAceptar = new QPushButton("Aceptar");
+
+    botonAceptar->setStyleSheet("QPushButton {" "color: white;" "border: 3px solid white;" "border-radius: 10px;"
+                                "font-size: 20px;" "padding: 10px 30px;""}");
+
+    QGraphicsProxyWidget *convBotonAceptar = nuevoGameOverScene->addWidget(botonAceptar);
+    convBotonAceptar->setPos(350,420);
+    nuevoGameOverScene->addItem(convBotonAceptar);
+
+    connect(botonAceptar, &QPushButton::clicked,this,&menuNiveles::menuBotonesNiveles);
+
+    vida = false;
+}
+
+void menuNiveles::reducirVidas(){
+
+    vidaPersonaje->mostSpriteVida();
+}
+
+menuNiveles::~menuNiveles()
+{
+    delete ui;
+   // delete nuevoPersonaje;
 }
