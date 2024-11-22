@@ -3,8 +3,9 @@
 
 Personaje::Personaje(QGraphicsView *_vista):vista(_vista) {
 
-
     moverAr = false; moverDe = false; moverIz = false;
+
+    contadorArmas = 10;
 
     //Variables dimesiones sprite
     altoSprite = 80;
@@ -31,6 +32,30 @@ Personaje::Personaje(QGraphicsView *_vista):vista(_vista) {
     connect(timermovimiento,&QTimer::timeout,this,&Personaje::aplicarFisica);
     // Intervalo de tiempo para la física
     timermovimiento->start(20);
+
+    choqueEnemigoAma = new QTimer(this);
+    connect(choqueEnemigoAma, &QTimer::timeout, this, &Personaje::detectarChoqueArma);
+    choqueEnemigoAma->start(50);
+}
+
+Personaje::Personaje(){
+
+    salud = 0;
+
+    altoSprite = 69;
+    anchoSprite = 270;
+
+    sprite_x_img = 0;
+    sprite_y_img = 0;
+
+    posicionX = 20;
+    posicionY = 10;
+
+    setFlag(QGraphicsItem::ItemIsFocusable);
+    spriteImgVida.load(":/spritesIMG/vidaPersonaje.png");
+    spriteVida = spriteImgVida.copy(sprite_x_img,sprite_y_img,anchoSprite,altoSprite);
+    //Muestra la porcion de esprite en pantalla.
+    setPixmap(spriteVida);
 }
 
 void Personaje::mostSprite(int _posicion){
@@ -48,15 +73,6 @@ void Personaje::mostSprite(int _posicion){
     if(contador == 8){contador = 0;}
 }
 
-Personaje::Personaje(){
-
-    setFlag(QGraphicsItem::ItemIsFocusable);
-    spriteImgVida.load(":/spritesIMG/vidaPersonaje.png");
-    spriteVida = spriteImgVida.copy(0,0,270,69);
-    //Muestra la porcion de esprite en pantalla.
-    setPixmap(spriteVida);
-
-}
 
 void Personaje::camIzquierda(){
 
@@ -122,20 +138,16 @@ void Personaje::capturarItemsPlataformas(QGraphicsRectItem *_items, int platX , 
 }
 
 void Personaje::saltar(){
+
      // Solo permite saltar si está en el suelo
     if(!enElAire){
         // Velocidad inicial hacia arriba
         velocidadY = -18;
         // Marca que el personaje está en el aire
         enElAire = true;
-
-        /*if(posicionY >= 520){
-            posicionY -= 1;
-        }*/
     }
 
     verfColisionPlataforma();
-
     moverAr = false;
 }
 
@@ -170,6 +182,7 @@ void Personaje::moverPersonaje(int _tecla){
         default:
             break;
     }
+
 }
 
 void Personaje::aplicarFisica(){
@@ -215,10 +228,23 @@ void Personaje::keyPressEvent(QKeyEvent *event){
 
 void Personaje::activarArma(){
 
+    if(contadorArmas < 1){
+
+        qDebug() << "Ya no tiene armas...";
+        return;
+    }
+
     Armas *nuevaArma = new Armas(vista, moverDe, moverIz);
     nuevaArma->lanzarArma(posicionX, posicionY);
-    vista->scene()->addItem(nuevaArma);;
-    nuevaArma->setPos(200,200);
+    vista->scene()->addItem(nuevaArma);
+
+    for(const auto& datosPos : posicionPlatafromas){
+
+        nuevaArma->captDatosPosicionPlat(datosPos.first, datosPos.second);
+    }
+
+    contadorArmas -= 1;
+    qDebug() << "Te quedan: " << contadorArmas << " armas";
 }
 
 void Personaje::verfColisionPlataforma(){
@@ -266,5 +292,36 @@ void Personaje::verficarSobrePlataforma(int X, int &Y, bool &sobre){
             Y = posiciones.second;
             break;
         }
+    }
+}
+
+void Personaje::detectarChoqueArma(){
+    static int a = 100;
+    for(QGraphicsItem *item : vista->scene()->items()){
+        if(QGraphicsEllipseItem *bstaculos = dynamic_cast<QGraphicsEllipseItem*>(item)){
+            if(this->collidesWithItem(bstaculos)){
+                a -= 10;
+                emit reducirVida();
+                qDebug() << "El personaje a sido imapactado por un arma: " << a;
+            }
+        }
+    }
+}
+
+void Personaje::mostSpriteVida(){
+
+    salud += 69;
+
+    sprite_y_img = salud;
+
+    spriteVida = spriteImgVida.copy(sprite_x_img, sprite_y_img,anchoSprite,altoSprite);
+
+    setPixmap(spriteVida);
+
+    setPos(10,5);
+
+    if(salud == 345){
+
+        emit personajeSinSalud();
     }
 }
