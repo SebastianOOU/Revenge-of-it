@@ -14,17 +14,22 @@ menuNiveles::menuNiveles(QWidget *parent)
 
     vida = false;
 
+    escenaNivelJuego = new QGraphicsScene();
+    escenaNivelJuego->setSceneRect(0,0,1280,720);
+    ui->graphicsView->setScene(escenaNivelJuego);
+
     menuBotonesNiveles();
 }
 
 void menuNiveles::nuevaEscenaNivelJuego(/*int _nivelJuego, int _numScena*/){
 
-    bool nivelBlocked; QString direccionImgFondo;
+    bool nivelBlocked; QString direccionImgFondo; string rutaNivel;
 
     NivelJuego nuevoNivel(_nivelJuego);
     nuevoNivel.extraerDatosJugador();
 
     nivelBlocked = nuevoNivel.getNivelBlocked();
+    rutaNivel = nuevoNivel.rutaNivel();
     direccionImgFondo = QString::fromStdString(nuevoNivel.getDireccionFondo());
 
     if(nivelBlocked){
@@ -32,54 +37,69 @@ void menuNiveles::nuevaEscenaNivelJuego(/*int _nivelJuego, int _numScena*/){
         return;
     }
 
-    QGraphicsScene *escenaNivelJuego = new QGraphicsScene();
-    escenaNivelJuego->setSceneRect(0,0,1280,720);
-    ui->graphicsView->setScene(escenaNivelJuego);
-
-
-
     QPixmap imagenFondo(direccionImgFondo);
 
-    QGraphicsPixmapItem *imagenFondoJuego = new QGraphicsPixmapItem(imagenFondo);
-    escenaNivelJuego->addItem(imagenFondoJuego);
+    if(_numScena != 2){
+
+        QGraphicsPixmapItem *imagenFondoJuego = new QGraphicsPixmapItem(imagenFondo);
+        escenaNivelJuego->addItem(imagenFondoJuego);
+    }
 
     nuevoPersonaje = new Personaje(ui->graphicsView);
-    escenaNivelJuego->addItem(nuevoPersonaje);
+    this->ui->graphicsView->scene()->addItem(nuevoPersonaje);
     nuevoPersonaje->setPos(60,75);
     nuevoPersonaje->setFocus();
 
     if(!vida){
 
         vidaPersonaje = new Personaje();
-        escenaNivelJuego->addItem(vidaPersonaje);
+        this->ui->graphicsView->scene()->addItem(vidaPersonaje);
         vidaPersonaje->setPos(10,5);
-
         vida = true;
     }
 
-    escenaNivelJuego->addItem(vidaPersonaje);
-    vidaPersonaje->setPos(10,5);
+    if(_numScena == 2){
 
-    nuevoEnemigo = new Enemigo(ui->graphicsView);
-    nuevoEnemigo->setPos(800,550);
-    escenaNivelJuego->addItem(nuevoEnemigo);
+        EnemigoIT *nuevoEnemigo = new EnemigoIT(ui->graphicsView);
+        nuevoEnemigo->setPos(800,550);
+        this->ui->graphicsView->scene()->addItem(nuevoEnemigo);
 
-    Obstaculos nuevoObstaculo;
-    nuevoObstaculo.extraerDatosSprites(_nivelJuego,_numScena);
+        enemigos.push_back(nuevoEnemigo);
+    }
+
+    Obstaculos *nuevoObstaculo = new Obstaculos(rutaNivel, _numScena);
+    nuevoObstaculo->extraerDatosSprites();
+    nuevoObstaculo->extraerDatosEnenim();
 
     QBrush brushObstaculo(QImage(":/spritesIMG/obstaculo_bloques.png"));
 
     QPen pen(Qt::gray, 3, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin);
 
-    for(auto& posiciones : nuevoObstaculo.datosSprites){
+    for(const auto& posiciones : nuevoObstaculo->datosSprites){
 
-        QGraphicsRectItem *plataformaObs = new QGraphicsRectItem(posiciones.first,posiciones.second,200,40);
+        for(const auto& datos : posiciones.second){
 
-        plataformaObs->setBrush(brushObstaculo);
-        plataformaObs->setPen(pen);
-        escenaNivelJuego->addItem(plataformaObs);
+            QGraphicsRectItem *plataformaObs = new QGraphicsRectItem(posiciones.first,datos.first,datos.second,40);
 
-        nuevoPersonaje->capturarItemsPlataformas(plataformaObs, posiciones.first, posiciones.second);
+            plataformaObs->setBrush(brushObstaculo);
+            plataformaObs->setPen(pen);
+            this->ui->graphicsView->scene()->addItem(plataformaObs);
+
+            nuevoPersonaje->capturarItemsPlataformas(plataformaObs, posiciones.first, datos.first, datos.second);
+        }
+    }
+
+    for(auto& posiciones : nuevoObstaculo->datosEnemigo){
+
+        for(auto& datos : posiciones.second){
+
+            Enemigo *nemigo = new Enemigo(ui->graphicsView,posiciones.first,datos.second,datos.first);
+            nemigo->setPos(posiciones.first,datos.second);
+            this->ui->graphicsView->scene()->addItem(nemigo);
+            nuevoPersonaje->capturarEnemigos(nemigo);
+
+            enemigos.push_back(nemigo);
+        }
     }
 
     connect(nuevoPersonaje, &Personaje::llegarLimiteScena,this,&menuNiveles::cambioEscenaDentroNivelJuego);
@@ -92,84 +112,101 @@ void menuNiveles::cambioEscenaDentroNivelJuego(){
     _numScena = 2;
 
    /*for(QGraphicsItem *item : this->ui->graphicsView->scene()->items()){
-        if(Enemigo *bstaculos = dynamic_cast<Enemigo*>(item)){
+        if(QGraphicsProxyWidget *bstaculos = dynamic_cast<QGraphicsProxyWidget*>(item)){
             this->ui->graphicsView->scene()->removeItem(bstaculos);
             delete bstaculos;
         }
     }*/
 
-    delete nuevoEnemigo;
+    eliminarObjetos();
+
+    //mostGameOver();
 
     nuevaEscenaNivelJuego();
 }
 
+void menuNiveles::eliminarObjetos(){
 
+     auto i = enemigos.begin();
+
+    while(i != enemigos.end()){
+
+        this->ui->graphicsView->scene()->removeItem(*i);
+
+        qDebug() << "Eliminado de la scena";
+        delete *i;
+        qDebug() << "Eliminado de la memoria";
+
+        i = enemigos.erase(i);
+    }
+
+    this->ui->graphicsView->scene()->removeItem(nuevoPersonaje);
+
+}
 
 void menuNiveles::menuBotonesNiveles(){
 
-    QGraphicsScene *escenaMenuNiveles  = new QGraphicsScene();
+    /*QGraphicsScene *escenaMenuNiveles  = new QGraphicsScene();
     escenaMenuNiveles->setSceneRect(0,0,1280,720);
-    ui->graphicsView->setScene(escenaMenuNiveles);
+    ui->graphicsView->setScene(escenaMenuNiveles);*/
 
-    QPushButton *botonNivel1 = new QPushButton("Nivel 1");
+    QPixmap imagenFondo(":/imgNiveles/Revenge of it.png");
 
-    /*botonNivel1->setStyleSheet("QPushButton {"
-                               //"background-color: #4CAF50;"   //Diseño css para el boton
-                               "color: white;"
-                               "border: 2px solid #3e8e41;"
-                               "border-radius: 10px;"
-                               "font-size: 16px;"
-                               "padding: 10px;"
-                               "}");*/
+    QGraphicsPixmapItem *imagenFondoOver = new QGraphicsPixmapItem(imagenFondo);
+    this->ui->graphicsView->scene()->addItem(imagenFondoOver);
 
-    QGraphicsProxyWidget *convBotonNivel1 = escenaMenuNiveles->addWidget(botonNivel1);
-    convBotonNivel1->setPos(450,300);
-    escenaMenuNiveles->addItem(convBotonNivel1);
+    string arrayNom[3] = {"Nivel 1", "Nivel 2", "Nivel 3"};
+    vector <QPushButton *> botonesNiveles;
 
-    QPushButton *botonNivel2 = new QPushButton("Nivel 2");
+    for(int i = 1; i <= 3; i++){
 
-    QGraphicsProxyWidget *convBotonNivel2 = escenaMenuNiveles->addWidget(botonNivel2);
-    convBotonNivel2->setPos(550,300);
-    escenaMenuNiveles->addItem(convBotonNivel2);
+        QPushButton *botonNivel = new QPushButton(QString::fromStdString(arrayNom[i - 1]));
 
-    QPushButton *botonNivel3 = new QPushButton("Nivel 3");
+        botonNivel->setStyleSheet("QPushButton {" "background-color: #808b96;" "border: none;" "color: white;"
+                                  "font-size: 20px;" "padding: 10px 30px;" "}");
 
-    QGraphicsProxyWidget *convBotonNivel3 = escenaMenuNiveles->addWidget(botonNivel3);
-    convBotonNivel3->setPos(650,300);
-    escenaMenuNiveles->addItem(convBotonNivel3);
+        botonesNiveles.push_back(botonNivel);
 
-    escenaMenuNiveles->removeItem(convBotonNivel3);
+        QGraphicsProxyWidget *convBotonNivel = this->ui->graphicsView->scene()->addWidget(botonNivel);
+        convBotonNivel->setPos(290 * i,490);
+        this->ui->graphicsView->scene()->addItem(convBotonNivel);
+    }
 
     _nivelJuego = 1;
     _numScena = 1;
 
-    connect(botonNivel1, &QPushButton::clicked, this, &menuNiveles::nuevaEscenaNivelJuego);
+
+    connect(botonesNiveles[0], &QPushButton::clicked,this,&menuNiveles::cambioNivel1);
+    connect(botonesNiveles[1], &QPushButton::clicked,this,&menuNiveles::cambioNivel2);
+    connect(botonesNiveles[2], &QPushButton::clicked,this,&menuNiveles::cambioNivel3);
+
 }
 
 void menuNiveles::mostGameOver(){
 
-    for(QGraphicsItem *item : this->ui->graphicsView->scene()->items()){
-        if(QGraphicsPixmapItem*bstaculos = dynamic_cast<QGraphicsPixmapItem*>(item)){
-            this->ui->graphicsView->scene()->removeItem(bstaculos);
+    eliminarObjetos();
 
-        }
-    }
+    qDebug() << "Buenas tardes";
 
-    QGraphicsScene *nuevoGameOverScene = new QGraphicsScene();
-    nuevoGameOverScene->setSceneRect(0, 50, 800, 500);
-    ui->graphicsView->setScene(nuevoGameOverScene);
+    QPixmap imagenFondo(":/imgNiveles/GameOver.png");
 
-    QPixmap imagenFondo(":/spritesIMG/GameOver.png");
+    qDebug() << "Buenas tardes1";
 
     QGraphicsPixmapItem *imagenFondoOver = new QGraphicsPixmapItem(imagenFondo);
-    nuevoGameOverScene->addItem(imagenFondoOver);
+    escenaNivelJuego->addItem(imagenFondoOver);
+
+    qDebug() << "Buenas tardes2";
 
     QFont font1("Arial",20, QFont::Bold);
+
+    qDebug() << "Buenas tardes3";
 
     QGraphicsTextItem *textScore = new QGraphicsTextItem("Score:");
     textScore->setPos(150, 350);
     textScore->setFont(font1);
-    nuevoGameOverScene->addItem(textScore);
+    this->ui->graphicsView->scene()->addItem(textScore);
+
+    qDebug() << "Buenas tardes4";
 
     QFont font2("Arial",20);
 
@@ -178,20 +215,51 @@ void menuNiveles::mostGameOver(){
     QGraphicsTextItem *textInformacion = new QGraphicsTextItem(nom);
     textInformacion->setPos(150, 250);
     textInformacion->setFont(font2);
-    nuevoGameOverScene->addItem(textInformacion);
+    this->ui->graphicsView->scene()->addItem(textInformacion);
 
-    QPushButton *botonAceptar = new QPushButton("Aceptar");
+    qDebug() << "Buenas tardes5";
+
+    QPushButton *botonAceptar = new QPushButton("Aceptar",this);
 
     botonAceptar->setStyleSheet("QPushButton {" "color: white;" "border: 3px solid white;" "border-radius: 10px;"
                                 "font-size: 20px;" "padding: 10px 30px;""}");
+    qDebug() << "Buenas tardes6";
 
-    QGraphicsProxyWidget *convBotonAceptar = nuevoGameOverScene->addWidget(botonAceptar);
+    QGraphicsProxyWidget *convBotonAceptar = this->ui->graphicsView->scene()->addWidget(botonAceptar);
     convBotonAceptar->setPos(350,420);
-    nuevoGameOverScene->addItem(convBotonAceptar);
+    this->ui->graphicsView->scene()->addItem(convBotonAceptar);
+
+    qDebug() << "Buenas tardes buenas";
 
     connect(botonAceptar, &QPushButton::clicked,this,&menuNiveles::menuBotonesNiveles);
 
     vida = false;
+
+    qDebug() << "Buenas tardes buenas trgfghyh";
+}
+
+void menuNiveles::cambioNivel1(){
+
+    _nivelJuego = 1;
+    _numScena = 1;
+
+    nuevaEscenaNivelJuego();
+}
+
+void menuNiveles::cambioNivel2(){
+
+    _nivelJuego = 2;
+    _numScena = 1;
+
+    nuevaEscenaNivelJuego();
+}
+
+void menuNiveles::cambioNivel3(){
+
+    _nivelJuego = 3;
+    _numScena = 1;
+
+    nuevaEscenaNivelJuego();
 }
 
 void menuNiveles::reducirVidas(){
@@ -202,5 +270,6 @@ void menuNiveles::reducirVidas(){
 menuNiveles::~menuNiveles()
 {
     delete ui;
+    //delete nuevoEnemigo;
    // delete nuevoPersonaje;
 }
