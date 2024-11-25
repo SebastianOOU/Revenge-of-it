@@ -9,23 +9,25 @@ const int velocidadSaltoInicial = -7;
 // Gravedad constante (se puede ajustar)
 const float gravedad = 0.3;
 
-Enemigo::Enemigo(QGraphicsView *_vista,int x, int y, int ancho, int alto) :vista(_vista){
+Enemigo::Enemigo(QGraphicsView *_vista,int a,int b,int c,int x, int y, int ancho, int alto) :vista(_vista){
 
     estado = 0;
     contador = 0;
     velocidadY = 0;
     enElAire = false;
+    _a = true;  _c = false;
     altoSprite = alto;
-    posicionX = x;
-    posicionY = y;
+    posicionX = a;
+    posicionY = b;
+    totalSuelo = c;
     anchoSprite = ancho;
-
+    posicionIncial = a;
     movDerecha = false;
     movIzquierda = false;
 
     srand(static_cast<unsigned int>(time(0)));
 
-    spriteImg.load(":/spritesIMG/movimientoEnemigoIt.png");
+    spriteImg.load(":/spritesIMG/Captura_de_pantalla-removebg-preview.png");
 
     sprite_x_img = 0;
     sprite_y_img = 0;
@@ -37,11 +39,9 @@ Enemigo::Enemigo(QGraphicsView *_vista,int x, int y, int ancho, int alto) :vista
     timerMovimiento = new QTimer(this);
     connect(timerMovimiento,&QTimer::timeout,this,&Enemigo::actualizarSprite);
     timerMovimiento->start(140);
-
-    timerArma = new QTimer(this);
-    connect(timerArma,&QTimer::timeout,this,&Enemigo::activarArma);
-    timerArma->start(2000);
 }
+
+Enemigo::Enemigo(){}
 
 void Enemigo::dimensionarSprite(int _nuevoAncho, int _nuevoAlto){
 
@@ -56,9 +56,28 @@ void Enemigo::actualizarSprite(){
     sprite = spriteImg.copy(sprite_x_img, sprite_y_img, anchoSprite, altoSprite);
     setPixmap(sprite);
     contador++;*/
+    if(_a){
+        moverAdelante();
+
+    }
+
+    if(posicionX >= totalSuelo || _c){
+        _a = false;
+        moverAtras();
+        _c = true;
+    }
+
+    if(posicionX < posicionIncial){
+        _a = true;
+        moverAdelante();
+        _c = false;
+    }
 
 
-    if (contador % 7 == 0){
+
+
+
+    /*if (contador % 5 == 0){
 
         int randomState = rand() % 3;
         cambiarEstado(randomState);
@@ -73,7 +92,7 @@ void Enemigo::actualizarSprite(){
             break;
         default:
             break;
-    }
+    }*/
 }
 
 void Enemigo::mostSprite(int _posicion){
@@ -89,7 +108,7 @@ void Enemigo::mostSprite(int _posicion){
     //Se contabiliza la cantidad de sprites
     contador++;
     //Si ya se recorrieron todos los sprites reinicio
-    if(contador == 7){contador = 0; }
+    if(contador == 4){contador = 0; }
 }
 
 void Enemigo::moverAdelante(){
@@ -106,7 +125,7 @@ void Enemigo::moverAtras(){
 
     posicionX -= 5;
     setPos(posicionX,posicionY);
-    mostSprite(100);
+    mostSprite(60);
 
     movDerecha = false;
     movIzquierda = true;
@@ -118,10 +137,4 @@ void Enemigo::cambiarEstado(int _nuevoEstado){
     estado = _nuevoEstado;
 }
 
-void Enemigo::activarArma(){
-
-    Armas *nuevaArma = new Armas(vista,movDerecha,movIzquierda);
-    nuevaArma->lanzarArma(posicionX,posicionY);
-    vista->scene()->addItem(nuevaArma);
-}
 //Aplicar fisica pendiente
