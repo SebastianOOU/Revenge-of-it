@@ -3,10 +3,7 @@
 
 #include <QMainWindow>
 #include "menuniveles.h"
-#include "personaje.h"
-#include "niveljuego.h"
-#include "obstaculos.h"
-#include "enemigo.h"
+#include "juego.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -21,11 +18,17 @@ class MainWindow : public QMainWindow
 public:
     MainWindow(QWidget *parent = nullptr);
 
+
     ~MainWindow();
 
 private slots:
-    //void nuevaEscena();
-    void on_pushButton_clicked();
+
+
+    void on_botonJugar_clicked();
+
+    void on_botonAgregar_clicked();
+
+    void on_botonIngresar_clicked();
 
 private:
 

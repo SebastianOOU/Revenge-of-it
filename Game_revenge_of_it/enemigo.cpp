@@ -36,9 +36,10 @@ Enemigo::Enemigo(QGraphicsView *_vista,int a,int b,int c,int x, int y, int ancho
     setPixmap(sprite);
     setPos(posicionX,posicionY);
 
+    int rt = 80;
     timerMovimiento = new QTimer(this);
     connect(timerMovimiento,&QTimer::timeout,this,&Enemigo::actualizarSprite);
-    timerMovimiento->start(140);
+    timerMovimiento->start(rt);
 }
 
 Enemigo::Enemigo(){}
@@ -52,10 +53,6 @@ void Enemigo::dimensionarSprite(int _nuevoAncho, int _nuevoAlto){
 
 void Enemigo::actualizarSprite(){
 
-    /*sprite_x_img = anchoSprite * contador;
-    sprite = spriteImg.copy(sprite_x_img, sprite_y_img, anchoSprite, altoSprite);
-    setPixmap(sprite);
-    contador++;*/
     if(_a){
         moverAdelante();
 
@@ -72,27 +69,6 @@ void Enemigo::actualizarSprite(){
         moverAdelante();
         _c = false;
     }
-
-
-
-
-
-    /*if (contador % 5 == 0){
-
-        int randomState = rand() % 3;
-        cambiarEstado(randomState);
-    }
-
-    switch (estado) {
-        case 0:
-            moverAdelante();
-            break;
-        case 1:
-            moverAtras();
-            break;
-        default:
-            break;
-    }*/
 }
 
 void Enemigo::mostSprite(int _posicion){
@@ -119,6 +95,7 @@ void Enemigo::moverAdelante(){
 
     movDerecha = true;
     movIzquierda = false;
+
 }
 
 void Enemigo::moverAtras(){
@@ -131,10 +108,8 @@ void Enemigo::moverAtras(){
     movIzquierda = true;
 }
 
-//Saltar pendiente
 
 void Enemigo::cambiarEstado(int _nuevoEstado){
     estado = _nuevoEstado;
 }
 
-//Aplicar fisica pendiente

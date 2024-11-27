@@ -7,6 +7,7 @@
 #include "enemigo.h"
 #include "enemigoit.h"
 #include "obstaculos.h"
+#include "juego.h"
 
 namespace Ui {
 class menuNiveles;
@@ -21,24 +22,31 @@ class menuNiveles : public QMainWindow{
         explicit menuNiveles(QWidget *parent = nullptr);
 
         void nuevaEscenaNivelJuego();
-
-
+        void eliminarGrafico();
+        void eliminarObjetosDentroJuego();
 
         ~menuNiveles();
 
     private:
 
-        int _nivelJuego;
-        int _numScena;
+        int nivelJuego;
+        int numScena;
         bool vida;
+        int puntaje = 0;
+        string nombreJug;
 
         Personaje *nuevoPersonaje;
         Personaje *vidaPersonaje;
+        QGraphicsTextItem *textValorPun;
+        Armas *arma;
+        Obstaculos *obsCaja;
+        Juego juego;
 
         QGraphicsScene *escenaNivelJuego;
         QGraphicsTextItem *textValorPuntaje;
+        QGraphicsTextItem *textValorBom;
 
-        vector <QGraphicsPixmapItem *> enemigos;
+        vector <EnemigoIT *> enemigos;
 
         Ui::menuNiveles *ui;
 
@@ -54,6 +62,11 @@ class menuNiveles : public QMainWindow{
         void cambioEscenaDentroNivelJuego();
         void reducirVidas();
         void mostGameOver();
+
+        void actualizarCantBombas();
+        void actualizarPunt();
+
+        void nivelSuperadoMost();
 
     private slots:
 };

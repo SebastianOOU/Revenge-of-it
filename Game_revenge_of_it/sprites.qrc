@@ -3,11 +3,23 @@
         <file>archivosDatosJuego/nivel1.txt</file>
         <file>archivosDatosJuego/direccionDatos.txt</file>
         <file>spritesIMG/obstaculo_bloques.png</file>
-        <file>spritesIMG/fondoImgLevel 1.png</file>
         <file>spritesIMG/vidaPersonaje.png</file>
         <file>spritesIMG/movimientoEnemigoIt.png</file>
         <file>spritesIMG/movimientoPersonaje.png</file>
         <file>spritesIMG/animacionExplosion.png</file>
-        <file>spritesIMG/imagen_bomba.png</file>
+        <file>spritesIMG/Captura_de_pantalla-removebg-preview.png</file>
+        <file>imgNiveles/GameOver.png</file>
+        <file>spritesIMG/imagenBomba.png</file>
+        <file>imgNiveles/cajaSpriteLevel1.png</file>
+        <file>imgNiveles/cajaSpriteLevel3.png</file>
+        <file>imgNiveles/fondoImgLevel 1.1.png</file>
+        <file>imgNiveles/fondoImgLevel1.2.png</file>
+        <file>imgNiveles/fondoImgNivel2.1.png</file>
+        <file>imgNiveles/fondoImgNivel2.2.png</file>
+        <file>imgNiveles/fondoNivel3.1.png</file>
+        <file>imgNiveles/fondoNivel3.2.png</file>
+        <file>spritesIMG/bloquePlataforma2.png</file>
+        <file>imgNiveles/fondoNivelSuperado.png</file>
+        <file>imgNiveles/fondoImgNiveles.png</file>
     </qresource>
 </RCC>

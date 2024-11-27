@@ -1,176 +1,207 @@
 #include "obstaculos.h"
 #include <string>
 #include <QDebug>
+#include "armas.h"
 
+Obstaculos::Obstaculos(string _rutaNivel, int _numScena) {
 
-Obstaculos::Obstaculos() {
+    direccionNivel = _rutaNivel;
 
-    direccionImg = "0";
-    altoSprite = 0;
-    anchoSprite = 0;
-    posicionX = 0;
-    posicionY = 0;
-    cantidadObs = 6;
+    cantidadObs = 1;
+    numScena = _numScena;
 }
 
+Obstaculos::Obstaculos(){}
 
-void Obstaculos::extraerDatosSprites(int _nivel, int _numScena){
+Obstaculos::Obstaculos(QGraphicsView *_vista, int _nivelJuego) : vista(_vista), nivelJuego(_nivelJuego){
+
+    pos_x_sprite = 0;
+    pos_y_sprite = 0;
 
 
-    ifstream archivo, _archivo;
-    string direccionNivel, datos, _datos;
+    contador = 0;
 
-    if(_nivel == 1){
+    setFlag(QGraphicsItem::ItemIsFocusScope);
 
-        direccionNivel = ":/archivosDatosJuego/nivel1.txt";
-    }else if(_nivel == 2){
+    if(nivelJuego == 1){
 
-        direccionNivel = ":/archivosDatosJuego/nivel2.txt";
+        anchoSprite = 50;
+        spritImgCajas.load(":/imgNiveles/cajaSpriteLevel1.png");
     }else{
 
-        direccionNivel = ":/archivosDatosJuego/nivel3.txt";
+        anchoSprite = 70;
+        spritImgCajas.load(":/imgNiveles/cajaSpriteLevel3.png");
     }
 
-    archivo.open("direccionDatos.txt", ios::in);
-    _archivo.open("nivel1.txt", ios::in);
+    spritCaja = spritImgCajas.copy(pos_x_sprite,pos_y_sprite,anchoSprite,50);
+
+    setPixmap(spritCaja);
+
+    timerSpriteCaja = new QTimer(this);
+    connect(timerSpriteCaja, &QTimer::timeout, this, &Obstaculos::activarObsNivel1_3);
+    timerSpriteCaja->start(600);
+}
+
+void Obstaculos::activarObsNivel1_3(){
+
+    for(QGraphicsItem *item : vista->scene()->items()){
+        if(Armas *arma = dynamic_cast<Armas*>(item)){
+
+            if(this->collidesWithItem(arma)){
+
+                if(nivelJuego == 1){
+
+                    cajaNivel1();
+
+                }else{
+
+                    cajaNivel3();
+                }
+
+            }
+        }
+    }
+}
+
+void Obstaculos::cajaNivel3(){
+
+    pos_x_sprite = anchoSprite * contador;
+
+    spritCaja = spritImgCajas.copy(pos_x_sprite,pos_y_sprite,anchoSprite,50);
+
+    setPixmap(spritCaja);
+
+    setPos(300,580);
+
+    contador++;
+
+    if(contador == 3){
+        pos_y_sprite += 50;
+        contador = 0;
+
+        if(pos_y_sprite == 150){
+
+            emit nivelSuperado();
+            timerSpriteCaja->stop();
+        }
+    }
+}
+
+void Obstaculos::cajaNivel1(){
+
+    pos_x_sprite = anchoSprite * contador;
+
+    spritCaja = spritImgCajas.copy(pos_x_sprite,pos_y_sprite,anchoSprite,50);
+
+    setPixmap(spritCaja);
+
+    setPos(980,350);
+
+    contador++;
+
+    if(contador == 6){
+
+        emit nivelSuperado();
+        timerSpriteCaja->stop();
+    }
+}
+
+void Obstaculos::extraerDatosEnenim(){
+
+    ifstream archivo;
+    string datos;
+
+    archivo.open(direccionNivel, ios::in);
 
     if(!archivo.is_open()){
 
-        qDebug() << "No se pudo abrir el archivo...1";
+        qDebug() << "No se pudo abrir el archivo...";
         return;
     }
 
-    if(!_archivo.is_open()){
-
-        qDebug() << "No se pudo abrir el archivo...2";
-        return;
-    }
+    bool opcion1 = false, opcion2 = false; int contador = 0;
 
     while(getline(archivo,datos)){
-        qDebug() << "Leyendo línea: " << datos ;
-        direccionImg = datos;
 
-    }
-    datos = "";
-    archivo.close();
-    qDebug() << direccionImg;
-    int contador = 0,  b;
-    bool opcion = false;
+        if(datos == "--"){
 
-    while(getline(_archivo,datos)){
-        qDebug() << "Leyendo línea: " << datos ;
-
-        if(contador == 0 || contador == 4){
-
-            char a = datos[2];
-            b = a - '0';
-
-            if(b == _numScena){
-
-                a = datos[0];
-                cantidadObs = a - '0';
-                opcion = true;
-                contador = 0;
-            }
+            opcion1 = true;
         }
 
-        if(opcion && contador >= 1){
+        if(opcion1 && datos[1] == ':' && datos[2] == numScena + '0'){
 
-            capturarPosiciones(datos);
+            cantidadObs = datos[0] - '0';
+            datos = "";
+            opcion2 = true;
         }
 
-        if (contador == cantidadObs){
-            break;
+        if(opcion2 == true && datos != ""){
+
+            capturarPosiciones(datos,true);
+            contador++;
         }
+
+        if(contador == cantidadObs){ break; }
 
         datos = "";
-        contador++;
     }
-
-    _archivo.close();
-
 }
 
-void Obstaculos::capturarPosiciones(string _datos){
+void Obstaculos::extraerDatosSprites(){
 
-    int longitud = _datos.size();
+    ifstream archivo;
+    string  datos;
+
+    archivo.open(direccionNivel, ios::in);
+
+    bool opcion = false; int contador = 0;
+
+    while(getline(archivo,datos)){
+
+        if(datos[1] == ':' && datos[2] == numScena + '0'){
+
+            cantidadObs = datos[0] - '0';
+            datos = "";
+            opcion = true;
+        }
+        qDebug() << datos;
+        if(opcion == true && datos != ""){
+
+            capturarPosiciones(datos, false);
+            contador++;
+        }
+
+        if(contador == cantidadObs){ break; }
+
+        datos = "";
+    }
+    archivo.close();
+}
+
+void Obstaculos::capturarPosiciones(string _datos, bool _enemin){
+
+    int longitud = _datos.size(), cont = 0;
     string datos;
-    qDebug() << _datos;
+
     for(int i = 0; i < longitud; i++){
 
-        if(_datos[i] == ':'){
-            qDebug() << datos;
-            posicionX = stoi(datos);
-            datos = "";
+        if(_datos[i] == ','){
 
+            arrayDatos[cont] = stoi(datos);
+            cont++;
+            datos = "";
         }else{
 
             datos += _datos[i];
         }
-        qDebug() << datos;
+
         if(i == longitud - 1){
 
-            posicionY = stoi(datos);
+            arrayDatos[cont] = stoi(datos);
         }
     }
-    qDebug() << cantidadObs;
-    qDebug() << "X " << posicionX << " Y " << posicionY;
-    datosSprites[posicionX] = posicionY;
+
+    if(_enemin){ datosEnemigo[arrayDatos[0]][arrayDatos[1]] = arrayDatos[2]; }
+    else{ datosSprites[arrayDatos[0]][arrayDatos[1]] = arrayDatos[2]; }
 }
 
-void Obstaculos::setCantidadObs(int _num){
-    cantidadObs = _num;
-}
-
-int Obstaculos::getCantidadObs() const{
-    return cantidadObs;
-}
-void Obstaculos::setDireccionImg(string _direccionImg){
-
-    direccionImg = _direccionImg;
-}
-
-string Obstaculos::getDireccionImg() const{
-
-    return direccionImg;
-}
-
-void Obstaculos::setAltoSprite(int _altoSprite){
-
-    altoSprite = _altoSprite;
-}
-
-void Obstaculos::setAnchoSprite(int _anchoSprite){
-
-    anchoSprite = _anchoSprite;
-}
-
-void Obstaculos::setPosicionX(int _posicionX){
-
-    posicionX = _posicionX;
-}
-
-void Obstaculos::setPosicionY(int _posicionY){
-
-    posicionY = _posicionY;
-}
-
-int Obstaculos::getAnchoSprite() const{
-
-    return anchoSprite;
-}
-
-int Obstaculos::getAltoSprite() const{
-
-    return altoSprite;
-}
-
-int Obstaculos::getPosicionX() const{
-
-    return posicionX;
-}
-
-int Obstaculos::getPosicionY() const{
-
-    return posicionY;
-}

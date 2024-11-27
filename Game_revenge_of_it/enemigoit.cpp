@@ -95,8 +95,14 @@ void EnemigoIT::cambiarEstado(int _nuevoEstado){
 
 void EnemigoIT::activarArma(){
 
-    Armas *nuevaArma = new Armas(vista,getMoverDe(),getMoverIz());
+    qDebug() << "Arma activada enemigoIT";
+
+    Armas *nuevaArma = new Armas(vista,getMoverDe(),getMoverIz(),false);
     nuevaArma->lanzarArma(posicionX,posicionY);
     vista->scene()->addItem(nuevaArma);
+}
+
+void EnemigoIT::pausarLanzarBombas(){
+    timerArma->stop();
 }
 //Aplicar fisica pendiente
