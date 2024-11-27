@@ -1,9 +1,14 @@
 #include "armas.h"
 #include <QGraphicsRectItem>
-Armas::Armas(QGraphicsView *_vista, bool _derecha, bool _izquierda) : vista(_vista) {
+#include "enemigo.h"
+#include "enemigoit.h"
+#include "obstaculos.h"
+Armas::Armas(QGraphicsView *_vista, bool _derecha, bool _izquierda, bool _personEnemin) : vista(_vista) {
 
     derecha = _derecha;
     izquierda = _izquierda;
+
+    personORenemin = _personEnemin;
 
     gravedad = 9.8;
     posicion = 0;
@@ -16,6 +21,14 @@ Armas::Armas(QGraphicsView *_vista, bool _derecha, bool _izquierda) : vista(_vis
     velocidadInicialArma = 0;
     anguloArma = 0;
 
+    setFlag(QGraphicsItem::ItemIsFocusable);
+
+    spriteImgArma.load(":/spritesIMG/imagenBomba.png");
+
+    spriteArma = spriteImgArma.copy(0,0,40,35);
+
+    setPixmap(spriteArma);
+
     timerArma = new QTimer(this);
     connect(timerArma, &QTimer::timeout, this, &Armas::moverArma);
 
@@ -23,25 +36,22 @@ Armas::Armas(QGraphicsView *_vista, bool _derecha, bool _izquierda) : vista(_vis
     connect(timerExplosion, &QTimer::timeout,this,&Armas::actiAnimExplocion);
 }
 
+Armas::Armas(){}
 
-void Armas::lanzarArma(qreal _posicionX, qreal _posicionY){
-
-    QBrush brushElipse(QImage(":/spritesIMG/imagen_bomba.png"));
-
-    QPen pen(Qt::gray, 2, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin);
-
-    arma = new QGraphicsEllipseItem(0,0, 20, 20);
-    arma->setBrush(brushElipse);
-    arma->setPen(pen);
-    vista->scene()->addItem(arma);
-    //if(scene()) scene()->addItem(bomba);REVISAR
+void Armas::lanzarArma(float _posicionX, float _posicionY){
 
     if(derecha){
 
         xArma = _posicionX + 50;
+
     }else if(izquierda){
 
         xArma = _posicionX - 50;
+
+        spriteArma = spriteImgArma.copy(0,35,40,35);
+
+        setPixmap(spriteArma);
+
     }else{
 
         xArma = _posicionX + 50;
@@ -49,7 +59,7 @@ void Armas::lanzarArma(qreal _posicionX, qreal _posicionY){
 
     yArma = _posicionY - 10;
 
-    arma->setPos(xArma, yArma);
+    setPos(xArma, yArma);
 
     velocidadInicialArma = 100;
     anguloArma = 10;
@@ -60,7 +70,6 @@ void Armas::lanzarArma(qreal _posicionX, qreal _posicionY){
 
 
 void Armas::moverArma(){
-
 
     //Calcula los componentes de la velocidad
     float anguloRad = anguloArma * M_PI / 180;
@@ -80,54 +89,10 @@ void Armas::moverArma(){
     nuevaYArma = yArma -(vy * tiempoArma - 0.5 * gravedad * tiempoArma * tiempoArma);
     //Actualiza la posicion de la bomba
 
-    arma->setPos(nuevaXArma, nuevaYArma);
+    setPos(nuevaXArma, nuevaYArma);
     //bool opcion = true;
 
-    for(QGraphicsItem *item : vista->scene()->items()){
-        if(QGraphicsRectItem *bstaculos = dynamic_cast<QGraphicsRectItem*>(item)){
-            if(this->collidesWithItem(bstaculos)){
-
-                timerExplosion->start(30);
-
-                timerArma->stop();
-
-                vista->scene()->removeItem(arma);
-                delete arma;
-
-                arma = nullptr;
-                qDebug() << "Bomba impacto con un obstaculo: ";
-            }
-        }
-    }
-
-    /*if(xArma + 20 >= 535){
-
-                timerExplosion->start(50);
-                qDebug() << "Colicion detectada";
-                timerArma->stop();
-
-                vista->scene()->removeItem(arma);
-                delete arma;
-                timerExplosion->start(30);
-                arma = nullptr;
-
-                opcion = false;
-    }*/
-
     verificarColision();
-
-    //Verifica si la bomba toco el suelo.
-    /*if(nuevaYArma >= 580 && opcion){
-        timerExplosion->start(30);
-
-        timerArma->stop();
-
-        vista->scene()->removeItem(arma);
-        delete arma;
-
-        arma = nullptr;
-
-    }*/
 }
 
 
@@ -166,6 +131,8 @@ void Armas::mostAnimExplosion(){
 
 void Armas::verificarColision(){
 
+    bool colisionTierra = true;
+
     for (const auto& datosPos : posicionesPlataforma){
 
         int posX = datosPos.first, posY = datosPos.second;
@@ -175,10 +142,63 @@ void Armas::verificarColision(){
             qDebug() << "Colicion detectada";
             timerArma->stop();
 
-            vista->scene()->removeItem(arma);
-            delete arma;
             timerExplosion->start(30);
-            arma = nullptr;
+
+            colisionTierra = false;
+        }
+    }
+
+    if(colisionTierra && nuevaYArma >= 600){
+
+        qDebug() << "Colicion detectada con tierra";
+        timerArma->stop();
+
+
+        timerExplosion->start(30);
+    }
+
+    for(QGraphicsItem *item : vista->scene()->items()){
+        if(EnemigoIT *bstaculo = dynamic_cast<EnemigoIT*>(item)){
+            if(this->collidesWithItem(bstaculo)){
+
+                qDebug() << "La bomba impacto con Enemigo IT: ";
+            }
+        }else if(Enemigo *bstaculos = dynamic_cast<Enemigo*>(item)){
+                if(this->collidesWithItem(bstaculos)){
+
+                    timerArma->stop();
+
+                    timerExplosion->start(30);
+
+                    if(personORenemin){
+
+                        vista->scene()->removeItem(bstaculos);
+                        delete bstaculos;
+
+                        emit aumentarPuntaje();
+
+                    }
+                    qDebug() << "la bomba impacto con un enemigo";
+                }
+        }else if(Obstaculos *bstaculs = dynamic_cast<Obstaculos*>(item)){
+            if(this->collidesWithItem(bstaculs)){
+
+                timerArma->stop();
+
+                timerExplosion->start(30);
+
+                qDebug() << "La bomba imapcato con un obstculo";
+            }
+        }else if(Personaje *person = dynamic_cast<Personaje*>(item)){
+
+            if(this->collidesWithItem(person)){
+
+                timerArma->stop();
+
+                timerExplosion->start(30);
+
+                qDebug() << "La bomba impacto con el personaje";
+            }
         }
     }
 }

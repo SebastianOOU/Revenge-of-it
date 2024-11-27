@@ -23,6 +23,7 @@ class EnemigoIT : public Enemigo{
 
     public:
         EnemigoIT(QGraphicsView *);
+        void pausarLanzarBombas();
 
     public slots:
         void actualizarSprite();

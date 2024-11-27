@@ -11,6 +11,8 @@ CONFIG += c++17
 SOURCES += \
     armas.cpp \
     enemigo.cpp \
+    enemigoit.cpp \
+    juego.cpp \
     main.cpp \
     mainwindow.cpp \
     menuniveles.cpp \
@@ -21,6 +23,8 @@ SOURCES += \
 HEADERS += \
     armas.h \
     enemigo.h \
+    enemigoit.h \
+    juego.h \
     mainwindow.h \
     menuniveles.h \
     niveljuego.h \

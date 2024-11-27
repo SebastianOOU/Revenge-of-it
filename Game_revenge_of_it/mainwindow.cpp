@@ -1,12 +1,10 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
-#include "personaje.h"
 #include <QGraphicsPixmapItem>
 #include <QGraphicsScene>
 #include <QGraphicsView>
-#include <QWidget>
-#include <QImage>
-#include <QBrush>
+#include <QMessageBox>
+#include <QDebug>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -14,89 +12,103 @@ MainWindow::MainWindow(QWidget *parent)
 {
     ui->setupUi(this);
 
-
-    /*QGraphicsPixmapItem *obstaculo1 = new QGraphicsPixmapItem(QPixmap(":/spritesIMG/obstaculo_bloques.png"));
-    obstaculo1->setPos(540, 500);
-    escena->addItem(obstaculo1);
-
-    QGraphicsPixmapItem *obstaculo2 = new QGraphicsPixmapItem(QPixmap(":/spritesIMG/obstaculo_bloques.png"));
-    obstaculo2->setPos(900, 450);
-    escena->addItem(obstaculo2);
-
-    QGraphicsPixmapItem *obstaculo3 = new QGraphicsPixmapItem(QPixmap(":/spritesIMG/obstaculo_bloques.png"));
-    obstaculo3->setPos(180, 450);
-    escena->addItem(obstaculo3);
-
-    QGraphicsRectItem *rectangu1o1 = new QGraphicsRectItem(540, 500, 200,50);
-    rectangu1o1->setBrush(Qt::gray);
-    escena->addItem(rectangu1o1);
-
-    QGraphicsRectItem *rectangu1o2 = new QGraphicsRectItem(900, 450, 200,50);
-    rectangu1o2->setBrush(Qt::gray);
-    escena->addItem(rectangu1o2);
-
-    QGraphicsRectItem *rectangu1o3 = new QGraphicsRectItem(180, 450, 200,50);
-    rectangu1o3->setBrush(Qt::gray);
-    escena->addItem(rectangu1o3);*/
+    QGraphicsScene *escenaMenuPrincipal = new QGraphicsScene();
+    escenaMenuPrincipal->setSceneRect(0,0,800,600);
+    ui->graphicsView->setScene(escenaMenuPrincipal);
 
 
-   //onnect(personajeJugador, &Personaje::llegarLimiteScena,this,&MainWindow::nuevaEscena);
 }
 
-/*void MainWindow::nuevaEscena(){
 
-    for(QGraphicsItem *item : this->ui->graphicsView->scene()->items()){
-        if(QGraphicsPixmapItem *bstaculos = dynamic_cast<QGraphicsPixmapItem*>(item)){
-            this->ui->graphicsView->scene()->removeItem(bstaculos);
+
+void MainWindow::on_botonJugar_clicked()
+{
+    menuNiveles *menu_niveles = new menuNiveles(this);
+    menu_niveles->show();
+}
+
+
+void MainWindow::on_botonAgregar_clicked(){
+
+    QString h = ui->entradaNombre->text();
+
+    string nombre = h.toStdString();
+
+    Juego juego;
+    juego.setNombreJugador(nombre);
+    juego.verificarJugador();
+
+    bool jugadorExit;
+
+    try{
+
+        jugadorExit =  juego.getJugadorExiste();
+
+        if(jugadorExit){ throw 1;}
+        else{
+            juego.agregarJugador();
+            QMessageBox *mensajeAgregar = new QMessageBox(this);
+            mensajeAgregar->setText("Jugador agregado exitozamente...");
+            mensajeAgregar->setInformativeText("Click en Jugar, ¡Empieza el Juego!");
+            mensajeAgregar->exec();
+        }
+
+    }catch (int jugExiste){
+
+        if(jugExiste == 1){
+
+            QMessageBox *mensajeError = new QMessageBox(this);
+            mensajeError->setText("El jugador ya existe...");
+            mensajeError->setInformativeText("Por favor, ingrese un nombre diferente.");
+            mensajeError->exec();
+            return;
         }
     }
 
-    QGraphicsScene *escena = new QGraphicsScene(this);
-    escena->setSceneRect(0,0,1280,720);
-    ui->graphicsView->setScene(escena);
+}
 
-    NivelJuego *nivelJuego = new NivelJuego();
-    escena->addItem(nivelJuego);
-    nivelJuego->setPos(0,0);
 
-    Personaje *personajeJugador = new Personaje(ui->graphicsView);
-    escena->addItem(personajeJugador);
-    personajeJugador->setPos(30,600);
-    personajeJugador->setFocus();
+void MainWindow::on_botonIngresar_clicked(){
 
-    Personaje *vida = new Personaje();
-    escena->addItem(vida);
-    vida->setPos(30,10);
+    QString h = ui->entradaNombre->text();
 
-    Enemigo *enemigo = new Enemigo();
-    enemigo->setPos(800,565);
+    string nombre = h.toStdString();
 
-    escena->addItem(enemigo);
+    Juego juego;
+    juego.setNombreJugador(nombre);
+    juego.verificarJugador();
 
-    QGraphicsPixmapItem *bstaculos = new QGraphicsPixmapItem(QPixmap(":/spritesIMG/obstaculo_bloques.png"));
-    bstaculos->setPos(540,450);
-    escena->addItem(bstaculos);
+    bool jugadorExit;
 
-    QGraphicsPixmapItem *bstaculos2 = new QGraphicsPixmapItem(QPixmap(":/spritesIMG/obstaculo_bloques.png"));
-    bstaculos2->setPos(900,400);
-    escena->addItem(bstaculos2);
+    try{
 
-    QGraphicsPixmapItem *bstaculos3 = new QGraphicsPixmapItem(QPixmap(":/spritesIMG/obstaculo_bloques.png"));
-    bstaculos3->setPos(180,500);
-    escena->addItem(bstaculos3);
+        jugadorExit =  juego.getJugadorExiste();
 
-}*/
-MainWindow::~MainWindow()
-{
+        if(!jugadorExit){ throw 1;}
+        else{
+            juego.activarJugador(true);
+            QMessageBox *mensajeAgregar = new QMessageBox(this);
+            mensajeAgregar->setText("Ingreso con exito..");
+            mensajeAgregar->setInformativeText("Click en Jugar, ¡Empieza el Juego!");
+            mensajeAgregar->exec();
+        }
+
+    }catch (int jugExiste){
+
+        if(jugExiste == 1){
+
+            QMessageBox *mensajeError = new QMessageBox(this);
+            mensajeError->setText("El jugador no existe");
+            mensajeError->setInformativeText("Por favor, verifique su entrada.");
+            mensajeError->exec();
+            return;
+        }
+    }
+}
+
+MainWindow::~MainWindow(){
+
     delete ui;
 }
 
-
-
-void MainWindow::on_pushButton_clicked(){
-
-    menuNiveles *MenuNiveles = new menuNiveles(this);
-    MenuNiveles->show();
-
-}
 

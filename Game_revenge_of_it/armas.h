@@ -6,14 +6,23 @@
 #include <QPixmap>
 #include <QGraphicsEllipseItem>
 #include <QGraphicsView>
+#include <map>
+#include <iostream>
+#include "personaje.h"
+using namespace std;
 
 class Armas : public QObject, public QGraphicsPixmapItem {
         Q_OBJECT
     private:
 
+        QPixmap spriteImgArma;
+        QPixmap spriteArma;
+
         QPixmap spriteExplosion;
         QPixmap explosion;
         QTimer *timerExplosion;
+
+        bool personORenemin;
 
         int spriteX;
         int spriteY;
@@ -39,17 +48,29 @@ class Armas : public QObject, public QGraphicsPixmapItem {
 
         float gravedad;
 
+        map <int,int> posicionesPlataforma;
+
     public:
-        Armas(QGraphicsView *, bool, bool);
-
-        void lanzarArma(qreal,qreal);
+        Armas(QGraphicsView *, bool, bool, bool);
+        Armas();
+        void lanzarArma(float,float);
         void moverArma();
+        void captDatosPosicionPlat(int,int);
+        //void choqueDetectadoPer();
 
-        void actiAnimExplocion();
         void mostAnimExplosion();
 
         void detectarChoque();
         void mostrarSpritExplosion();
+
+        void verificarColision();
+        void pararMovimiento();
+
+    public slots:
+        void actiAnimExplocion();
+
+    signals:
+        void aumentarPuntaje();
 
 };
 
