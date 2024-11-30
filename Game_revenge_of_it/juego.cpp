@@ -104,7 +104,6 @@ void Juego::activarJugador(bool _activar){
                         break;
                     }
                 }
-
                 _datos = "";
                 contador++;
 
@@ -116,15 +115,11 @@ void Juego::activarJugador(bool _activar){
     }
 
     datosJugadores.shrink_to_fit();
-
     archivo.close();
 
-    _archivo.open("jugadorDatos.txt", ios::out);//verificar
+    _archivo.open("jugadorDatos.txt", ios::out);
 
-    for(auto i = datosJugadores.begin(); i != datosJugadores.end(); i++){
-
-        _archivo << *i << endl;
-    }
+    for(auto i = datosJugadores.begin(); i != datosJugadores.end(); i++){ _archivo << *i << endl; }
 
     datosJugadores.clear();
 
@@ -145,7 +140,6 @@ void Juego::activarJugador(bool _activar){
     datosJugador.clear();
 
     _archivo << endl;
-
     _archivo.close();
 }
 
@@ -210,6 +204,55 @@ void Juego::extraerPuntaje(){
 
     archivo.close();
 
+}
+
+void Juego::actuNivelORdesacJug(bool _opcion, int _nivel){
+
+    ifstream archivo;
+    ofstream _archivo;
+    string datos;
+
+    archivo.open("jugadorDatos.txt", ios::in);
+
+    if(!archivo.is_open()){
+
+        qDebug() << "No se pudo abrir el archivo...";
+        return;
+    }
+
+    while(getline(archivo, datos)){
+
+        qDebug() << datos;
+
+        if(datos[0] == '1'){
+
+            int longitud = datos.size();
+            capturarDatosJugador(datos,longitud);
+
+        }else{ datosJugadores.push_back(datos); }
+    }
+
+    datosJugadores.shrink_to_fit();
+
+    _archivo.open("jugadorDatos.txt", ios::out);
+
+    if(_opcion){
+
+        if(_nivel == 1){ datosJugador[3] = "2/1"; }
+        else if(_nivel == 2){ datosJugador[4] = "3/1"; }
+
+    }else{ datosJugador[0] = "0"; }
+
+    for(auto i = datosJugadores.begin(); i != datosJugadores.end(); i++){ _archivo << *i << endl; }
+
+    datosJugadores.clear();
+
+    for(auto i = datosJugador.begin(); i != datosJugador.end(); i++){ _archivo << *i << ","; }
+
+    datosJugador.clear();
+
+    _archivo << endl;
+    _archivo.close();
 }
 
 void Juego::setPuntajeJugador(int _puntaje){
