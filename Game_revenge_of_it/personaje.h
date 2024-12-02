@@ -9,6 +9,9 @@
 #include <QGraphicsRectItem>
 #include <vector>
 #include <map>
+#include <QMediaPlayer>
+#include <QUrl>
+#include <QAudioOutput>
 #include "armas.h"
 using namespace  std;
 
@@ -16,57 +19,51 @@ class Personaje : public QObject, public QGraphicsPixmapItem {
 
         Q_OBJECT
     private:
-       // Armas *nuevaArma ;
+        QMediaPlayer *musicaGolpeArma;
+        QAudioOutput *volumen;
         QGraphicsView *vista;
 
-        QPixmap spriteImg;
-        QPixmap sprite;
+        QPixmap spriteImgVida, spriteVida;
 
-        QPixmap spriteImgVida;
-        QPixmap spriteVida;
-
-        string nombre;
+        int puntaje;
         //Dimensiones del sprite a mostrar.
         int altoSprite;
         int anchoSprite;
         //Posiciones del sprite en la pantalla.
-        float posicionX;
-        float posicionY;
+        qreal posicionX;
+        qreal posicionY;
         //Posiciones del sprite en la imagen de sprites
         int sprite_x_img;
         int sprite_y_img;
         //Salud del personaje (vidas)
         int salud;
         //Contar la cantidad de sprites que se debe mostrar
-        int contador = 0;
+        int contador;
         int contadorArmas;
 
-        //QGraphicsRectItem *vidaPersonaje;
-        bool a = true;
         bool moverIz, moverDe, moverAr;
 
         QTimer *choqueEnemigoAma;
         QTimer *timermovimiento;
+        QTimer *timerMoverPersonaje;
+        QTimer *timerDetectarColItems;
+
         bool enElAire;
         int velocidadY;
 
-
+    public:
+        Personaje();
+        Personaje(QGraphicsView *vista,int);
 
         vector <QGraphicsRectItem *> itemsPlataformas;
+        map <int,map<int,int>> posicionPlataformas;
 
-
-    public:
-        Personaje(QGraphicsView *vista,int);
-        Personaje();
-        vector <QGraphicsPixmapItem *> enemigos;
-        void vaciarvector();
-        map <int,map<int,int>> posicionPlatafromas;
+        QPixmap spriteImg, sprite;
 
         void keyPressEvent(QKeyEvent *event);
-        void capturarItemsPlataformas(/*QGraphicsRectItem *,*/ int, int, int);
-        void capturarEnemigos(QGraphicsPixmapItem *);
+        void keyReleaseEvent(QKeyEvent *event);
+        void capturarItemsPlataformas(QGraphicsRectItem *, int, int, int);
 
-        void moverPersonaje(int);
         void camDerecha();
         void camIzquierda();
         void saltar();
@@ -77,10 +74,10 @@ class Personaje : public QObject, public QGraphicsPixmapItem {
 
         void mostSprite(int);
         void mostSpriteVida(int);
-        void aplicarFisica();
 
         void verfColisionPlataforma();
-        void verficarSobrePlataforma(int,int &, bool &);
+        void verficarSobrePlataforma(bool &, int &);
+        void stopTimers();
 
         void setAltoSprite(int);
         void setAnchoSprite(int);
@@ -93,8 +90,8 @@ class Personaje : public QObject, public QGraphicsPixmapItem {
         void setMoverIz(bool);
         void setMoverDe(bool);
         void setBombas(int);
-        void setSpriteImg(QPixmap);
-        void setSprite(QPixmap);
+        void setEnElAire(bool);
+        void setPuntaje(int);
 
         int getAltoSprite();
         int getAnchoSprite();
@@ -107,18 +104,24 @@ class Personaje : public QObject, public QGraphicsPixmapItem {
         bool getMoverIz();
         bool getMoverDe();
         int getBombas();
-        QPixmap getSpriteImg();
-        QPixmap getSprite();
+        bool getEnElAire();
+        int getPuntaje();
+
+    public slots:
+
+        void aplicarFisica();
+        void detectarColisionItemsScena();
+        void moverPersonaje();
+        void actualizarPunt();
+        void detectarColisionArma();
 
     signals:
+
         void llegarLimiteScena();
         void personajeSinSalud();
         void reducirVida();
-        void reducirBombas();
-        void actualizarPuntaje();
-
-    public slots:
-        void detectarChoqueArma();
+        void actuPuntInter();
+        void actualizarNumBombas();
 };
 
 #endif // PERSONAJE_H

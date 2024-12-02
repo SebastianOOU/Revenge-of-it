@@ -12,19 +12,46 @@ MainWindow::MainWindow(QWidget *parent)
 {
     ui->setupUi(this);
 
+    opcion = false;
+
     QGraphicsScene *escenaMenuPrincipal = new QGraphicsScene();
-    escenaMenuPrincipal->setSceneRect(0,0,800,600);
+    escenaMenuPrincipal->setSceneRect(0,0,900,700);
     ui->graphicsView->setScene(escenaMenuPrincipal);
 
+    QImage imagenFondo(":/imgNiveles/fondoImgInicio.png");
+
+    escenaMenuPrincipal->setBackgroundBrush(imagenFondo);
+
+    QString text1 = "Ingrese su nombre de Jugador:";
+    QString text2 = "El juego esta basado en el Capitulo 5 'No es it', Temporada 34 de los Simpsons.";
+    QFont font1("Arial", 16);
+    QFont font2("Arial", 10);
+
+    QGraphicsTextItem *textoInicio = new QGraphicsTextItem(text1);
+    textoInicio->setFont(font1);
+    escenaMenuPrincipal->addItem(textoInicio);
+    textoInicio->setPos(200,430);
+
+    QGraphicsTextItem *textoInfo = new QGraphicsTextItem(text2);
+    textoInfo->setFont(font2);
+    escenaMenuPrincipal->addItem(textoInfo);
+    textoInfo->setPos(200,640);
 
 }
 
 
 
-void MainWindow::on_botonJugar_clicked()
-{
-    menuNiveles *menu_niveles = new menuNiveles(this);
-    menu_niveles->show();
+void MainWindow::on_botonJugar_clicked(){
+
+    if(opcion){
+        menuNiveles *menu_niveles = new menuNiveles(this);
+        menu_niveles->show();
+    }else{
+
+        QMessageBox *mensajeAgregar = new QMessageBox(this);
+        mensajeAgregar->setText("Ingresa o agrga un Jugador...");
+        mensajeAgregar->exec();
+    }
 }
 
 
@@ -34,9 +61,23 @@ void MainWindow::on_botonAgregar_clicked(){
 
     string nombre = h.toStdString();
 
+    try{
+        if(nombre == ""){throw 1;}
+
+    }catch(int entradaVacia){
+        if(entradaVacia == 1){
+
+            QMessageBox *mensajeError = new QMessageBox(this);
+            mensajeError->setText("El campo esta vacio...");
+            mensajeError->exec();
+            return;
+        }
+    }
+
     Juego juego;
+    juego.actuNivelORdesacJug(false);//Desactiva el juagdor activado
     juego.setNombreJugador(nombre);
-    juego.verificarJugador();
+    juego.verificarJugador();//VErifica la existencia del jugador
 
     bool jugadorExit;
 
@@ -45,12 +86,13 @@ void MainWindow::on_botonAgregar_clicked(){
         jugadorExit =  juego.getJugadorExiste();
 
         if(jugadorExit){ throw 1;}
-        else{
+        else{      
             juego.agregarJugador();
             QMessageBox *mensajeAgregar = new QMessageBox(this);
             mensajeAgregar->setText("Jugador agregado exitozamente...");
             mensajeAgregar->setInformativeText("Click en Jugar, ¡Empieza el Juego!");
             mensajeAgregar->exec();
+            opcion = true;
         }
 
     }catch (int jugExiste){
@@ -64,9 +106,7 @@ void MainWindow::on_botonAgregar_clicked(){
             return;
         }
     }
-
 }
-
 
 void MainWindow::on_botonIngresar_clicked(){
 
@@ -74,7 +114,21 @@ void MainWindow::on_botonIngresar_clicked(){
 
     string nombre = h.toStdString();
 
+    try{
+        if(nombre == ""){throw 1;}
+
+    }catch(int entradaVacia){
+        if(entradaVacia == 1){
+
+            QMessageBox *mensajeError = new QMessageBox(this);
+            mensajeError->setText("El campo esta vacio...");
+            mensajeError->exec();
+            return;
+        }
+    }
+
     Juego juego;
+    juego.actuNivelORdesacJug(false);
     juego.setNombreJugador(nombre);
     juego.verificarJugador();
 
@@ -85,12 +139,13 @@ void MainWindow::on_botonIngresar_clicked(){
         jugadorExit =  juego.getJugadorExiste();
 
         if(!jugadorExit){ throw 1;}
-        else{
+        else{         
             juego.activarJugador(true);
             QMessageBox *mensajeAgregar = new QMessageBox(this);
             mensajeAgregar->setText("Ingreso con exito..");
             mensajeAgregar->setInformativeText("Click en Jugar, ¡Empieza el Juego!");
             mensajeAgregar->exec();
+            opcion = true;
         }
 
     }catch (int jugExiste){

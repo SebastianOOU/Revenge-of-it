@@ -15,27 +15,21 @@ class Obstaculos : public QObject , public QGraphicsPixmapItem{
         Q_OBJECT
     private:
         QGraphicsView *vista;
+        QTimer *timerSpriteCaja, *timerMovPendulo;
+        QPixmap spritImgCajas, spritCaja;
+
         string direccionNivel;
 
-        QTimer *timerSpriteCaja;
+        int pos_x_sprite; int pos_y_sprite;
 
-        QPixmap spritImgCajas;
-        QPixmap spritCaja;
+        int anchoSprite; int contador;
 
-        int pos_x_sprite;
-        int pos_y_sprite;
-        int anchoSprite;
-        int contador;
-
-        int cantidadObs;
-        int numScena;
-        int nivelJuego;
+        int cantidadObs; int numScena; int nivelJuego;
 
         int arrayDatos[3];
 
     public:
-        Obstaculos(string, int);
-        Obstaculos();
+        Obstaculos(string, int); 
         Obstaculos(QGraphicsView *, int);
 
         map <int,map<int,int>> datosSprites;
@@ -45,9 +39,13 @@ class Obstaculos : public QObject , public QGraphicsPixmapItem{
         void extraerDatosEnenim();
         void capturarPosiciones(string, bool);
 
-        void activarObsNivel1_3();
         void cajaNivel1();
         void cajaNivel3();
+
+    public slots:
+
+        void activarObsNivel1_3();
+        void moverCajaPendulo();
 
     signals:
 

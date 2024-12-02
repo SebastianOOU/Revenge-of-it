@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>800</width>
-    <height>600</height>
+    <width>900</width>
+    <height>750</height>
    </rect>
   </property>
   <property name="font">
@@ -24,8 +24,8 @@
    <widget class="QLineEdit" name="entradaNombre">
     <property name="geometry">
      <rect>
-      <x>200</x>
-      <y>300</y>
+      <x>190</x>
+      <y>510</y>
       <width>201</width>
       <height>31</height>
      </rect>
@@ -43,16 +43,16 @@
      <rect>
       <x>0</x>
       <y>0</y>
-      <width>800</width>
-      <height>620</height>
+      <width>900</width>
+      <height>720</height>
      </rect>
     </property>
    </widget>
    <widget class="QPushButton" name="botonAgregar">
     <property name="geometry">
      <rect>
-      <x>440</x>
-      <y>260</y>
+      <x>560</x>
+      <y>500</y>
       <width>111</width>
       <height>41</height>
      </rect>
@@ -74,11 +74,18 @@
    <widget class="QPushButton" name="botonJugar">
     <property name="geometry">
      <rect>
-      <x>310</x>
-      <y>390</y>
-      <width>151</width>
-      <height>81</height>
+      <x>350</x>
+      <y>570</y>
+      <width>141</width>
+      <height>61</height>
      </rect>
+    </property>
+    <property name="font">
+     <font>
+      <family>Comic Sans MS</family>
+      <pointsize>20</pointsize>
+      <bold>true</bold>
+     </font>
     </property>
     <property name="cursor">
      <cursorShape>PointingHandCursor</cursorShape>
@@ -105,8 +112,8 @@
    <widget class="QPushButton" name="botonIngresar">
     <property name="geometry">
      <rect>
-      <x>440</x>
-      <y>320</y>
+      <x>430</x>
+      <y>500</y>
       <width>111</width>
       <height>41</height>
      </rect>
@@ -117,6 +124,9 @@
       <pointsize>16</pointsize>
       <bold>true</bold>
      </font>
+    </property>
+    <property name="cursor">
+     <cursorShape>PointingHandCursor</cursorShape>
     </property>
     <property name="text">
      <string>Ingresar</string>
