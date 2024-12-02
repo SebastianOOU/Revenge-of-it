@@ -2,6 +2,10 @@
 #define MENUNIVELES_H
 
 #include <QMainWindow>
+#include <QAudioOutput>
+#include <QMediaPlayer>
+#include <QUrl>
+#include <QAudioOutput>
 #include "niveljuego.h"
 #include "personaje.h"
 #include "enemigo.h"
@@ -24,29 +28,33 @@ class menuNiveles : public QMainWindow{
         void nuevaEscenaNivelJuego();
         void eliminarGrafico();
         void eliminarObjetosDentroJuego();
+        void closeEvent(QCloseEvent *event);
 
         ~menuNiveles();
 
     private:
 
+        QMediaPlayer *musicaFondo;
+        QAudioOutput *volumen;
+
         int nivelJuego;
         int numScena;
-        bool vida;
-        int puntaje = 0;
+        int puntaje;
         string nombreJug;
+
+        QTimer *timer;
 
         Personaje *nuevoPersonaje;
         Personaje *vidaPersonaje;
+        EnemigoIT *nuevoEnemigo;
         QGraphicsTextItem *textValorPun;
-        Armas *arma;
         Obstaculos *obsCaja;
         Juego juego;
 
         QGraphicsScene *escenaNivelJuego;
         QGraphicsTextItem *textValorPuntaje;
         QGraphicsTextItem *textValorBom;
-
-        vector <EnemigoIT *> enemigos;
+        QGraphicsTextItem *textVidaIt;
 
         Ui::menuNiveles *ui;
 
@@ -63,10 +71,14 @@ class menuNiveles : public QMainWindow{
         void reducirVidas();
         void mostGameOver();
 
-        void actualizarCantBombas();
+        void actualNumBombas();
         void actualizarPunt();
 
         void nivelSuperadoMost();
+        void createAndMoveEllipse();
+
+        void actuVidaEneIT();
+        void nuevoMenu();
 
     private slots:
 };

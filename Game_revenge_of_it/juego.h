@@ -22,6 +22,7 @@ class Juego{
         void agregarJugador();
         void capturarDatosJugador(string,int);
         void extraerPuntaje();
+        void actuNivelORdesacJug(bool, int nivel = 0);
 
         void setNombreJugador(string);
         void setPuntajeJugador(int);

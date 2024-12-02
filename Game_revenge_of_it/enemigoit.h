@@ -5,36 +5,37 @@
 #include "armas.h"
 
 class EnemigoIT : public Enemigo{
-
+        Q_OBJECT
     private:
-        QPixmap spriteImg;
-        QPixmap sprite;
-
-        float posicionX;
-        float posicionY;
 
         QGraphicsView *vista;
+        QTimer *timerMovimiento, *timerArma;
 
-        QTimer *timerMovimiento;
-        QTimer *timerArma;
-
-        int estado;
-        int contador;
+        int estado, nivel;
 
     public:
-        EnemigoIT(QGraphicsView *);
-        void pausarLanzarBombas();
+        EnemigoIT(QGraphicsView *, int);
 
-    public slots:
-        void actualizarSprite();
+        void pausarLanzarBombas();
+        void verificarChoqueArma();
+
         void mostSprite(int);
-        //void aplicarFisica();
+
         void moverAdelante();
         void moverAtras();
-        //void saltar();
-        void cambiarEstado(int nuevoEstado);
 
+        void cambiarEstado(int nuevoEstado);
+        void reducirVidaEne();
+
+    public slots:
+
+        void actualizarSprite();
         void activarArma();
+
+    signals:
+
+        void eneminItdead();
+        void actuVidaIT();
 };
 
 #endif // ENEMIGOIT_H

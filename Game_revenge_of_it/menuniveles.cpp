@@ -14,12 +14,20 @@ menuNiveles::menuNiveles(QWidget *parent)
     ui->setupUi(this);
 
     nivelJuego = 0;
+    puntaje = 0;
     numScena = 0;
 
     escenaNivelJuego = new QGraphicsScene();
     escenaNivelJuego->setSceneRect(0,0,1280,720);
     ui->graphicsView->setScene(escenaNivelJuego);
     escenaNivelJuego->setBackgroundBrush(Qt::black);
+
+    musicaFondo = new QMediaPlayer(this);
+    musicaFondo->setSource(QUrl("qrc:/sonidos/musicaFondo.mp3"));
+    volumen = new QAudioOutput(this);
+    volumen->setVolume(0.8);
+    musicaFondo->setAudioOutput(volumen);
+    musicaFondo->setLoops(QMediaPlayer::Infinite);
 
     juego.extraerPuntaje();
 
@@ -28,12 +36,6 @@ menuNiveles::menuNiveles(QWidget *parent)
     timer = new QTimer(this);
 
     connect(timer,&QTimer::timeout, this,&menuNiveles::createAndMoveEllipse);
-
-    musicaFondo= new QMediaPlayer(this);
-    volumen = new QAudioOutput(this);
-    volumen->setVolume(1.0);
-    musicaFondo->setAudioOutput(volumen);
-    musicaFondo->setLoops(QMediaPlayer::Infinite);
 }
 
 void menuNiveles::nuevaEscenaNivelJuego(){
@@ -50,10 +52,12 @@ void menuNiveles::nuevaEscenaNivelJuego(){
     nombreJug = nuevoNivel.getNombreJugador();
 
     try{
-
+        //Verifica si el nivel esta bloqueado
         if(nivelBlocked){
             menuBotonesNiveles();
             throw 1;
+        }else{
+            musicaFondo->play();
         }
 
     }catch(int errorBlock){
@@ -68,9 +72,9 @@ void menuNiveles::nuevaEscenaNivelJuego(){
             return;
         }
     }
-    qDebug() << "Puntaje actualizado..." << puntaje;
 
     QPixmap imagenFondo(direccionImgFondo);
+    QFont font("Arial",20, QFont::Bold);
 
     escenaNivelJuego->setBackgroundBrush(imagenFondo);
 
@@ -90,11 +94,8 @@ void menuNiveles::nuevaEscenaNivelJuego(){
         vidaPersonaje = new Personaje();
         this->ui->graphicsView->scene()->addItem(vidaPersonaje);
         vidaPersonaje->setPos(10,5);
-        vida = true;
 
         connect(vidaPersonaje, &Personaje::personajeSinSalud, this, &menuNiveles::mostGameOver);
-
-        QFont font("Arial",20, QFont::Bold);
 
         QGraphicsTextItem *textScore = new QGraphicsTextItem("Score : ");
         this->ui->graphicsView->scene()->addItem(textScore);
@@ -121,21 +122,43 @@ void menuNiveles::nuevaEscenaNivelJuego(){
         textNivel->setPos(600,20);
         textNivel->setFont(font);
 
+        QPushButton *botonMenu = new QPushButton("Salir");
+
+        botonMenu->setStyleSheet("QPushButton {" "color: white;" "font-size: 15px;" "padding: 10px 20px;" "}");
+
+        QGraphicsProxyWidget *convBotonMenu = this->ui->graphicsView->scene()->addWidget(botonMenu);
+        convBotonMenu->setPos(400,10);
+        this->ui->graphicsView->scene()->addItem(convBotonMenu);
+
+        connect(botonMenu, &QPushButton::clicked,this,&menuNiveles::nuevoMenu);
+
         timer->start(2500);
 
     }else{
 
         timer->stop();
 
-        EnemigoIT *nuevoEnemigo = new EnemigoIT(ui->graphicsView, nivelJuego);
+        nuevoEnemigo = new EnemigoIT(ui->graphicsView, nivelJuego);
         nuevoEnemigo->setPos(880,280);
         this->ui->graphicsView->scene()->addItem(nuevoEnemigo);
 
         connect(nuevoEnemigo, &EnemigoIT::eneminItdead, this, &menuNiveles::nivelSuperadoMost);
 
-        enemigos.push_back(nuevoEnemigo);
-    }
+        if(nivelJuego == 2){
 
+            QGraphicsTextItem *textVidaIT = new QGraphicsTextItem("IT : ");
+            this->ui->graphicsView->scene()->addItem(textVidaIT);
+            textVidaIT->setPos(1000,20);
+            textVidaIT->setFont(font);
+
+            textVidaIt = new QGraphicsTextItem(QString::number(nuevoEnemigo->getSalud()));
+            this->ui->graphicsView->scene()->addItem(textVidaIt );
+            textVidaIt ->setPos(1060,20);
+            textVidaIt ->setFont(font);
+
+            connect(nuevoEnemigo, &EnemigoIT::actuVidaIT, this, &menuNiveles::actuVidaEneIT);
+        }
+    }
 
     if(numScena == 2 && nivelJuego == 1){
 
@@ -149,12 +172,10 @@ void menuNiveles::nuevaEscenaNivelJuego(){
 
         obsCaja = new Obstaculos(ui->graphicsView,nivelJuego);
         this->ui->graphicsView->scene()->addItem(obsCaja );
-        obsCaja ->setPos(300,580);
+        obsCaja ->setPos(800,80);
 
         connect(obsCaja, &Obstaculos::nivelSuperado, this,&menuNiveles::nivelSuperadoMost);
     }
-
-
 
     Obstaculos *nuevoObstaculo = new Obstaculos(rutaNivel, numScena);
     nuevoObstaculo->extraerDatosSprites();
@@ -192,7 +213,6 @@ void menuNiveles::nuevaEscenaNivelJuego(){
 void menuNiveles::cambioEscenaDentroNivelJuego(){
 
     numScena = 2;
-    nuevoPersonaje->itemsPlataformas.clear();
 
     eliminarObjetosDentroJuego();
     nuevaEscenaNivelJuego();
@@ -230,21 +250,20 @@ void menuNiveles::eliminarObjetosDentroJuego(){
             this->ui->graphicsView->scene()->removeItem(objEnemin);
         }
     }
-    nuevoPersonaje->posicionPlatafromas.clear();
+    nuevoPersonaje->posicionPlataformas.clear();
+    nuevoPersonaje->itemsPlataformas.clear();
 }
 
 void menuNiveles::eliminarObjetos(){
+
     timer->stop();
 
-    musicaFondo->stop();
-
     nuevoPersonaje->itemsPlataformas.clear();
-
+    nuevoPersonaje->posicionPlataformas.clear();
     nuevoPersonaje->stopTimers();
-
     puntaje = nuevoPersonaje->getPuntaje();
-
     this->ui->graphicsView->scene()->removeItem(nuevoPersonaje);
+    this->ui->graphicsView->scene()->removeItem(vidaPersonaje);
 
 
     for(QGraphicsItem *objScena : this->ui->graphicsView->scene()->items()){
@@ -273,10 +292,6 @@ void menuNiveles::eliminarObjetos(){
 
             this->ui->graphicsView->scene()->removeItem(textoGraf);
 
-        }else if(Personaje *objPerson = dynamic_cast<Personaje*>(objScena)){
-
-            this->ui->graphicsView->scene()->removeItem(objPerson);
-
         }else if(QGraphicsEllipseItem *ellipsePun = dynamic_cast<QGraphicsEllipseItem*>(objScena)){
 
             this->ui->graphicsView->scene()->removeItem(ellipsePun);
@@ -284,10 +299,22 @@ void menuNiveles::eliminarObjetos(){
         }else if(Armas *bomba = dynamic_cast<Armas *>(objScena)){
 
             this->ui->graphicsView->scene()->removeItem(bomba);
+
+        }if(QGraphicsProxyWidget *itemBoton = dynamic_cast<QGraphicsProxyWidget*>(objScena)){
+
+            this->ui->graphicsView->scene()->removeItem(itemBoton);
         }
     }
 }
 
+void menuNiveles::nuevoMenu(){
+
+    musicaFondo->stop();
+
+    eliminarObjetos();
+    eliminarGrafico();
+    menuBotonesNiveles();
+}
 void menuNiveles::menuBotonesNiveles(){
 
     eliminarGrafico();
@@ -320,13 +347,13 @@ void menuNiveles::menuBotonesNiveles(){
 
 void menuNiveles::mostGameOver(){
 
+    musicaFondo->stop();
+
     eliminarObjetos();
 
     juego.setPuntajeJugador(puntaje);
     juego.setNombreJugador(nombreJug);
     juego.activarJugador(false);
-
-    textValorPun->setPlainText(QString::number(puntaje));
 
     escenaNivelJuego->setBackgroundBrush(Qt::black);
 
@@ -373,12 +400,16 @@ void menuNiveles::nivelSuperadoMost(){
 
     eliminarObjetos();
 
+    musicaFondo->stop();
+
+    if(nivelJuego == 1){ puntaje += 100; }
+    else if(nivelJuego == 2){ puntaje += 200; }
+    else if(nivelJuego == 3){ puntaje += 300; }
+
     juego.setPuntajeJugador(puntaje);
     juego.setNombreJugador(nombreJug);
     juego.activarJugador(false);
     juego.actuNivelORdesacJug(true,nivelJuego);
-
-    textValorPun->setPlainText(QString::number(puntaje));
 
     QPixmap imagenFondo(":/imgNiveles/fondoNivelSuperado.png");
 
@@ -452,8 +483,6 @@ void menuNiveles::cambioNivel1(){
     nivelJuego = 1;
     numScena = 1;
 
-    musicaFondo->setSource(QUrl("qrc:/imgNiveles/background-music-for-mobile-casual-video-game-short-8-bit-music-164703.mp3"));
-    musicaFondo->play();
     eliminarGrafico();
 
     nuevaEscenaNivelJuego();
@@ -464,9 +493,6 @@ void menuNiveles::cambioNivel2(){
     nivelJuego = 2;
     numScena = 1;
 
-    musicaFondo->setSource(QUrl("qrc:/imgNiveles/background-music-for-mobile-casual-video-game-short-8-bit-music-164703.mp3"));
-    musicaFondo->play();
-
     eliminarGrafico();
 
     nuevaEscenaNivelJuego();
@@ -476,9 +502,6 @@ void menuNiveles::cambioNivel3(){
 
     nivelJuego = 3;
     numScena = 1;
-
-    musicaFondo->setSource(QUrl("qrc:/imgNiveles/background-music-for-mobile-casual-video-game-short-8-bit-music-164703.mp3"));
-    musicaFondo->play();
 
     eliminarGrafico();
 
@@ -501,10 +524,13 @@ void menuNiveles::actualNumBombas(){
 
 void menuNiveles::closeEvent(QCloseEvent *event){
 
+    musicaFondo->stop();
+
     if(nivelJuego != 0){
         eliminarObjetos();
-        event->accept();
+
     }
+    event->accept();
 }
 
 void menuNiveles::actualizarPunt(){
@@ -514,6 +540,12 @@ void menuNiveles::actualizarPunt(){
     textValorPun->setPlainText(QString::number(punt));
 }
 
+void menuNiveles::actuVidaEneIT(){
+
+    int salud = nuevoEnemigo->getSalud();
+
+    textVidaIt->setPlainText(QString::number(salud));
+}
 menuNiveles::~menuNiveles(){
 
     delete ui;

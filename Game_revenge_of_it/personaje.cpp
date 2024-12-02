@@ -3,14 +3,16 @@
 #include <enemigo.h>
 #include "enemigoit.h"
 
+bool derech = false, izquierd = false, opcion = false;
+
 Personaje::Personaje(QGraphicsView *_vista, int _numScena):vista(_vista) {
 
     moverAr = false; moverDe = false; moverIz = false;
 
-    if(_numScena == 1){
+    if(_numScena == 1){ contadorArmas = 0; }
 
-        contadorArmas = 20;
-    }
+    contador = 0;
+    salud = 0;
 
     //Variables dimesiones sprite
     altoSprite = 80;
@@ -33,33 +35,41 @@ Personaje::Personaje(QGraphicsView *_vista, int _numScena):vista(_vista) {
     //Muestra la porcion de esprite en pantalla.
     setPixmap(sprite);
 
+    musicaGolpeArma = new QMediaPlayer(this);
+    musicaGolpeArma->setSource(QUrl("qrc:/sonidos/young-man-being-hurt-95628.mp3"));
+    volumen = new QAudioOutput(this);
+    volumen->setVolume(1.0);
+    musicaGolpeArma->setAudioOutput(volumen);
+    musicaGolpeArma->setLoops(1);
+
+    timerMoverPersonaje = new QTimer(this);
+    connect(timerMoverPersonaje,&QTimer::timeout,this,&Personaje::moverPersonaje);
+    timerMoverPersonaje->start(31);
+
     timermovimiento = new QTimer(this);
     connect(timermovimiento,&QTimer::timeout,this,&Personaje::aplicarFisica);
     // Intervalo de tiempo para la física
     timermovimiento->start(20);
 
+    timerDetectarColItems = new QTimer(this);
+    connect(timerDetectarColItems ,&QTimer::timeout,this,&Personaje::detectarColisionItemsScena);
+    // Intervalo de tiempo para la física
+    timerDetectarColItems ->start(30);
+
     choqueEnemigoAma = new QTimer(this);
-    connect(choqueEnemigoAma, &QTimer::timeout, this, &Personaje::detectarChoqueArma);
-    choqueEnemigoAma->start(150);
-}
-
-void Personaje::capturarEnemigos(QGraphicsPixmapItem *l){
-
-    enemigos.push_back(l);
+    connect(choqueEnemigoAma, &QTimer::timeout, this, &Personaje::detectarColisionArma);
+    choqueEnemigoAma->start(300);
 }
 
 Personaje::Personaje(){
 
     salud = 0;
 
-    altoSprite = 69;
-    anchoSprite = 270;
+    altoSprite = 69; anchoSprite = 270;
 
-    sprite_x_img = 0;
-    sprite_y_img = 0;
+    sprite_x_img = 0; sprite_y_img = 0;
 
-    posicionX = 20;
-    posicionY = 10;
+    posicionX = 20; posicionY = 10;
 
     setFlag(QGraphicsItem::ItemIsFocusable);
     spriteImgVida.load(":/spritesIMG/vidaPersonaje.png");
@@ -86,97 +96,50 @@ void Personaje::mostSprite(int _posicion){
 
 void Personaje::camIzquierda(){
 
+    bool intervaloPlatf = false; int posY;
+
     //Se resta para mover hacia izquierda
-    posicionX -= 8;
+    posicionX -= 10;
     //Se pasa posicion en la imagen de sprites
     mostSprite(80);
+    //Verifica si esat en intervalo de la plataforma
+    verficarSobrePlataforma(intervaloPlatf, posY);
 
-    bool a = false; int Y;
+    if(!intervaloPlatf){ enElAire = true; }
 
-    verficarSobrePlataforma(posicionX, Y, a);
-
-    if(!a){
-        enElAire = true;
-    }
-
-    if(posicionX <= 10){
-        posicionX += 8;
-    }
+    if(posicionX <= 5){ posicionX += 10; }
 
     //Definimos la posicion del sprite en la pantalla
     setPos(posicionX,posicionY);
 
-    verfColisionPlataforma();
-
-    moverIz = true;
-    moverDe = false;
+    derech = false;
+    izquierd = true;
 }
 
 void Personaje::camDerecha(){
+
+    bool intervaloPlatf = false; int posY;
 
     //Se suma para mover hacia derecha
     posicionX += 10;
     //Se pasa posicion en la imagen de sprites
     mostSprite(0);
+    //Verifica si esat en intervalo de la plataforma
+    verficarSobrePlataforma(intervaloPlatf, posY);
 
-    if(posicionX > 1220){
-        qDebug() << "Hola";
-        emit llegarLimiteScena();
-        posicionX = 0;
-    }
-
-    bool z = false; int Y;
-
-    verficarSobrePlataforma(posicionX, Y, z);
-
-    if(!z){
-        enElAire = true;
-    }
-
+    if(!intervaloPlatf){ enElAire = true; }
 
     //Definimos la posicion del sprite en la pantalla
     setPos(posicionX,posicionY);
 
-    verfColisionPlataforma();
-
-    moverDe = true;
-    moverIz = false;
-    /*if(a){
-
-        for(auto i = enemigos.begin(); i != enemigos.end(); i++){
-
-            if(this->collidesWithItem(*i)){
-                //a -= 10;
-                posicionX -= 30;
-                emit reducirVida();
-                qDebug() << "El personaje a sido imapactado por un Enemigo: ";
-            }
-        }
-    }*/
-
-    for(QGraphicsItem *item : vista->scene()->items()){
-
-        if(EnemigoIT *enemigoPrincipal = dynamic_cast<EnemigoIT*>(item)){
-            if(this->collidesWithItem(enemigoPrincipal)){
-                salud = 345;
-                emit reducirVida();
-                qDebug() << "El personaje a sido imapactado por un Enemigo: ";
-            }
-        }
-        else if(Enemigo *bstaculos = dynamic_cast<Enemigo*>(item)){
-            if(this->collidesWithItem(bstaculos)){
-                salud = 0;
-                emit reducirVida();
-                qDebug() << "El personaje a sido imapactado por un Enemigo: ";
-            }
-        }
-    }
+    derech = true;
+    izquierd = false;
 }
 
-void Personaje::capturarItemsPlataformas(/*QGraphicsRectItem *_items,*/ int platX , int platY, int _tamanio){
+void Personaje::capturarItemsPlataformas(QGraphicsRectItem *_items, int platX , int platY, int _tamanio){
 
- //   itemsPlataformas.push_back(_items);
-    posicionPlatafromas[platX][platY] = _tamanio;
+    itemsPlataformas.push_back(_items);
+    posicionPlataformas[platX][platY] = _tamanio;
 }
 
 void Personaje::saltar(){
@@ -189,68 +152,65 @@ void Personaje::saltar(){
         enElAire = true;
     }
 
-    verfColisionPlataforma();
     moverAr = false;
 }
 
-void Personaje::moverPersonaje(int _tecla){
+void Personaje::moverPersonaje(){
 
-    //Se recibe el valor de la tecla y se evalua
-    switch (_tecla) {
-    //Si el valor de la tecla es igual "<---"
-        case Qt::Key_A:
+    if(posicionX > 1220 ){
 
-            moverIz = true;
-            camIzquierda();
-            break;
+        if(!opcion){
 
-        case Qt::Key_D:
+            emit llegarLimiteScena();
+            posicionX = 0;
+            opcion = true;
 
-            moverDe = true;
-            camDerecha();
-           break;
-
-        case Qt::Key_W:
-
-            moverAr = true;
-            saltar();
-            break;
-
-        case Qt::Key_Space:
-
-            activarArma();
-            break;
-
-        default:
-            break;
+        }else{
+            posicionX -= 10;
+        }
     }
 
+    if(moverAr){
+
+        saltar();
+        verfColisionPlataforma();
+
+    }else if(moverDe){
+
+        camDerecha();
+        verfColisionPlataforma();
+
+    }else if(moverIz){
+
+        camIzquierda();
+        verfColisionPlataforma();
+    }
 }
 
 void Personaje::aplicarFisica(){
+
+    bool intervaloPlatf = false; int posYPlatf;
 
     if (enElAire) {
         // Gravedad que aumenta la velocidadY
         velocidadY += 1;
         posicionY += velocidadY;
 
-        // Verifica si llegó al suelo
-        bool a = false; int Y;
-        verficarSobrePlataforma(posicionX, Y, a);
+        verficarSobrePlataforma(intervaloPlatf, posYPlatf);
+        //Verifica si esta sobre la plataforma
+        if(intervaloPlatf && posicionY >= posYPlatf - 80 && posicionY <= posYPlatf- 50){
 
-        if(a && posicionY >= Y - 80 && posicionY <= Y - 50){
-
-            posicionY = Y - 75;
+            posicionY = posYPlatf - 75;
             velocidadY = 0;
             enElAire = false;
-
-        }else if(posicionY >= 565){
+        //Verifica si No esta sobre la plataforma
+        }else if(intervaloPlatf && posicionY > posYPlatf  && posicionY < posYPlatf + 20){
 
             posicionY = 565;
             velocidadY = 0;
             enElAire = false;
-
-        }else if(a && posicionY >= Y  && posicionY <= Y + 20){
+        // Verifica si llegó al suelo
+        }else if(posicionY >= 565){
 
             posicionY = 565;
             velocidadY = 0;
@@ -262,87 +222,126 @@ void Personaje::aplicarFisica(){
 }
 
 void Personaje::keyPressEvent(QKeyEvent *event){
-    //Capturo el valor de la tecla precionada
-    int tecla = event->key();
-    //Se llama la funcion y se pasa el valor de la tecla
-    moverPersonaje(tecla);
+
+    if(event->key() == Qt::Key_A){
+
+        moverIz = true;
+
+    }else if(event->key() == Qt::Key_D){
+
+        moverDe = true;
+
+    }else if(event->key() == Qt::Key_W){
+
+        moverAr = true;
+
+    }else if(event->key() ==Qt::Key_Space){
+
+        activarArma();
+    }
+}
+
+void Personaje::keyReleaseEvent(QKeyEvent *event){
+
+    if(event->key() == Qt::Key_A){
+
+        moverIz = false;
+
+    }else if(event->key() == Qt::Key_D){
+
+        moverDe = false;
+
+    }else if(event->key() == Qt::Key_W){
+
+        moverAr = false;
+    }
 }
 
 void Personaje::activarArma(){
 
-
-
     if(contadorArmas < 1){
-
-        qDebug() << "Ya no tiene armas...";
         return;
+
     }else{
+
         contadorArmas -= 1;
-        emit reducirBombas();
+        emit actualizarNumBombas();
     }
 
-    Armas *nuevaArma = new Armas(vista, moverDe, moverIz,true);
+    Armas *nuevaArma = new Armas(vista, derech, izquierd,true);
     nuevaArma->lanzarArma(posicionX, posicionY);
     vista->scene()->addItem(nuevaArma);
 
-    for(const auto& datosPos : posicionPlatafromas){
+    for(const auto& datosPos : posicionPlataformas){
 
         for(const auto& datos : datosPos.second){
 
             nuevaArma->captDatosPosicionPlat(datosPos.first, datos.first);
         }
-
-
     }
 
-    connect(nuevaArma, &Armas::aumentarPuntaje, this, &Personaje::actualizarPuntaje);
+    connect(nuevaArma, &Armas::aumentarPuntaje, this, &Personaje::actualizarPunt);
+}
 
-    qDebug() << "Te quedan: " << contadorArmas << " armas";
+void Personaje::actualizarPunt(){
+
+    puntaje += 2;
+
+    emit actuPuntInter();
 }
 
 void Personaje::verfColisionPlataforma(){
 
+    bool intervaloPlatf = false; int posY;
+
     for(auto itemObs = itemsPlataformas.begin(); itemObs != itemsPlataformas.end(); itemObs++){
 
         if(this->collidesWithItem(*itemObs)){
-            bool sobre = false; int Y;
+
             if(moverDe){
 
-                verficarSobrePlataforma(posicionX,Y,sobre);
-
-                if(!sobre){
-                    posicionX -= 8;
-                    qDebug() << "Colision detectada Derecha: " << " X: " << posicionX <<  " Y: " << posicionY;
+                verficarSobrePlataforma(intervaloPlatf,posY);
+                //Si no esta en el intervalo de la plataforma se actualiza la posicion
+                if(!intervaloPlatf){
+                    posicionX -= 10;
                 }
-            }
 
-            if(moverIz){
+            }else if(moverIz){
 
-                verficarSobrePlataforma(posicionX,Y,sobre);
-
-                if(!sobre){
-                    posicionX += 8;
-                    qDebug() << "Colision detectada Izquierda: " << " X: " << posicionX <<  " Y: " << posicionY;
+                verficarSobrePlataforma(intervaloPlatf,posY);
+                //Si no esta en el intervalo de la plataforma se actualiza la posicion
+                if(!intervaloPlatf){
+                    posicionX += 10;
                 }
-            }
 
-            if(moverAr){
+            }else if(moverAr){
                 aplicarFisica();
-                qDebug() << "Colision detectada Arriba: " << " X: " << posicionX <<  " Y: " << posicionY;
             }
         }
     }
 }
 
-void Personaje::verficarSobrePlataforma(int X, int &Y, bool &sobre){
-
-
-    for(const auto& posiciones : posicionPlatafromas){
+void Personaje::verficarSobrePlataforma(bool &_intervaloPlatf,int &Y){
+    //Verifica si esta dentro del intervalo de las plataformas.
+    for(const auto& posiciones : posicionPlataformas){
 
         for(const auto& datos : posiciones.second){
+            //Se verifica la posicion en X del personaje con la posicion en X y el ancho de las plataformas
+            if(moverDe && posicionX >= posiciones.first - 30 && posicionX <= posiciones.first + datos.second){
 
-            if(X >= posiciones.first - 30 && X <= posiciones.first + datos.second){
-                sobre = true;
+                _intervaloPlatf = true;
+                Y = datos.first;
+                break;
+
+            }else if(moverIz && posicionX <= posiciones.first + datos.second - 30 && posicionX  >= posiciones.first - 30){
+
+                _intervaloPlatf= true;
+                Y = datos.first;
+                break;
+
+            }else if(posicionX >= posiciones.first - 20 && posicionX  <= posiciones.first + datos.second - 30){
+
+                _intervaloPlatf = true;
                 Y = datos.first;
                 break;
             }
@@ -350,15 +349,64 @@ void Personaje::verficarSobrePlataforma(int X, int &Y, bool &sobre){
     }
 }
 
-void Personaje::detectarChoqueArma(){
+void Personaje::detectarColisionItemsScena(){
 
-    for(QGraphicsItem *item : this->vista->scene()->items()){
-        if(Armas *bstaculos = dynamic_cast<Armas*> (item)){
-            if(this->collidesWithItem(bstaculos)){
-                qDebug() << "El personaje a sido imapactado por un arma: " << a;
+    for(QGraphicsItem *itemsScena : vista->scene()->items()){
 
+       if(QGraphicsEllipseItem *ellipsePunt = dynamic_cast<QGraphicsEllipseItem*>(itemsScena)){
+
+            if(this->collidesWithItem(ellipsePunt)){
+                //Se aumente el contador de Armas (bombas) y el puntaje
+                contadorArmas++;
+                puntaje++;
+                this->vista->scene()->removeItem(ellipsePunt);
+                emit actuPuntInter();
+                emit actualizarNumBombas();
+            }
+
+        }else if(EnemigoIT *enemigoPrincipal = dynamic_cast<EnemigoIT*>(itemsScena)){
+
+            if(this->collidesWithItem(enemigoPrincipal)){
+                salud = 345;//Si colisiona con el enemigo principal, se reduce la vida completamente
                 emit reducirVida();
+            }
 
+        }else if(Enemigo *enemigo = dynamic_cast<Enemigo*>(itemsScena)){
+
+            if(this->collidesWithItem(enemigo)){
+                //Verifica si la colision fue sobre el enemigo
+                if(posicionY <= enemigo->getPosicionY() - 30){
+
+                    vista->scene()->removeItem(enemigo);
+                    delete enemigo;
+                    puntaje += 2;
+                    emit actuPuntInter();
+                }else{
+
+                    salud = 0;
+                    musicaGolpeArma->play();
+                    //Verifica la posicion del personaje y actuliza su posicion
+                    if(derech){ posicionX -= 30; }
+
+                    else if(izquierd){ posicionX += 30; }
+
+                    emit reducirVida();
+                }
+            }
+        }
+    }
+}
+
+void Personaje::detectarColisionArma(){
+
+    for(QGraphicsItem *itemsScena : vista->scene()->items()){
+
+        if(Armas *itemArma = dynamic_cast<Armas*> (itemsScena)){
+
+            if(this->collidesWithItem(itemArma)){
+                musicaGolpeArma->play();
+                salud = 0;
+                emit reducirVida();
             }
         }
     }
@@ -366,33 +414,26 @@ void Personaje::detectarChoqueArma(){
 
 void Personaje::mostSpriteVida(int _salud){
 
-    if(_salud == 0){
-        salud += 69;
+    if(_salud == 0){ salud += 69; }
 
-    }else{
-        salud = _salud;
-    }
-
+    else{ salud = _salud; }
 
     sprite_y_img = salud;
-
     spriteVida = spriteImgVida.copy(sprite_x_img, sprite_y_img,anchoSprite,altoSprite);
-
     setPixmap(spriteVida);
-
     setPos(10,5);
 
-    if(salud == 345){
-
-        emit personajeSinSalud();
-    }
+    if(salud == 345){ emit personajeSinSalud(); }
 }
 
-void Personaje::vaciarvector(){
+void Personaje::stopTimers(){
 
-    enemigos.clear();
-    a = false;
-    qDebug() << "Hola";
+    opcion = false;
+    //Se detienen los timers
+    timerMoverPersonaje->stop();
+    timermovimiento->stop();
+    choqueEnemigoAma->stop();
+    timerDetectarColItems->stop();
 }
 
 void Personaje::setAltoSprite(int _altoSprite){
@@ -440,12 +481,13 @@ void Personaje::setBombas(int _bombas){
     contadorArmas = _bombas;
 }
 
-void Personaje::setSpriteImg(QPixmap _spriteImg){
-    spriteImg = _spriteImg;
+void Personaje::setEnElAire(bool _aire){
+    enElAire = _aire;
 }
 
-void Personaje::setSprite(QPixmap _sprite){
-    sprite = _sprite;
+void Personaje::setPuntaje(int _puntaje){
+
+    puntaje = _puntaje;
 }
 
 //GETTERS
@@ -489,8 +531,16 @@ bool Personaje::getMoverIz(){
     return moverIz;
 }
 
-QPixmap Personaje::getSpriteImg(){
-    return spriteImg;
+bool Personaje::getEnElAire(){
+    return enElAire;
+}
+
+int Personaje::getContador(){
+    return contador;
+}
+
+int Personaje::getPuntaje(){
+    return puntaje;
 }
 
 

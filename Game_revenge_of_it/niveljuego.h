@@ -5,6 +5,11 @@
 #include <QPixmap>
 #include <QGraphicsPixmapItem>
 #include <vector>
+#include <QTimer>
+#include <ctime>
+#include <QGraphicsView>
+#include <QGraphicsEllipseItem>
+#include <cstdlib>
 #include <iostream>
 using namespace std;
 
@@ -16,9 +21,6 @@ class NivelJuego{
 
         int nivel;
         int numScena;
-
-        int altoImgFondo;
-        int anchoImgFondo;
 
         string direccionFondo;
         string direccFondoRects;
@@ -32,7 +34,6 @@ class NivelJuego{
         void verificarNivel(string);
         void extraerDatosJugador();
         void direccFondoImg();
-
         string rutaNivel();
 
         void setDireccionFondo(string);

@@ -15,38 +15,22 @@ class Armas : public QObject, public QGraphicsPixmapItem {
         Q_OBJECT
     private:
 
-        QPixmap spriteImgArma;
-        QPixmap spriteArma;
-
-        QPixmap spriteExplosion;
-        QPixmap explosion;
-        QTimer *timerExplosion;
+        QPixmap spriteImgArma, spriteArma, spriteExplosion, explosion;
+        QTimer *timerExplosion, *timerArma;
+        QGraphicsView *vista;
 
         bool personORenemin;
 
-        int spriteX;
-        int spriteY;
-        int posicion;
-        int contador = 0;
+        int spriteX, spriteY, posicion, contador;
 
-        bool derecha; bool izquierda;
+        bool derecha, izquierda;
 
-        QTimer *timerArma;
-        QGraphicsEllipseItem *arma;
-
-        QGraphicsView *vista;
-        float nuevaXArma;
-        float nuevaYArma;
-        //Posicion de la bomba
-        float xArma;
-        float yArma;
-
-        float velocidadInicialArma;
-        float anguloArma;
         //Angulo de lanzamiento
-        float tiempoArma;
+        float tiempoArma, gravedad;
 
-        float gravedad;
+        float nuevaXArma, nuevaYArma, xArma, yArma;
+
+        float velocidadInicialArma, anguloArma;
 
         map <int,int> posicionesPlataforma;
 
@@ -54,19 +38,15 @@ class Armas : public QObject, public QGraphicsPixmapItem {
         Armas(QGraphicsView *, bool, bool, bool);
         Armas();
         void lanzarArma(float,float);
-        void moverArma();
         void captDatosPosicionPlat(int,int);
-        //void choqueDetectadoPer();
 
         void mostAnimExplosion();
 
-        void detectarChoque();
-        void mostrarSpritExplosion();
-
         void verificarColision();
-        void pararMovimiento();
 
     public slots:
+
+        void moverArma();
         void actiAnimExplocion();
 
     signals:

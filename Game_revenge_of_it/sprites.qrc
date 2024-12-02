@@ -1,7 +1,5 @@
 <RCC>
     <qresource prefix="/">
-        <file>archivosDatosJuego/nivel1.txt</file>
-        <file>archivosDatosJuego/direccionDatos.txt</file>
         <file>spritesIMG/obstaculo_bloques.png</file>
         <file>spritesIMG/vidaPersonaje.png</file>
         <file>spritesIMG/movimientoEnemigoIt.png</file>
@@ -21,5 +19,9 @@
         <file>spritesIMG/bloquePlataforma2.png</file>
         <file>imgNiveles/fondoNivelSuperado.png</file>
         <file>imgNiveles/fondoImgNiveles.png</file>
+        <file>spritesIMG/fondoImgEllipse.jpg</file>
+        <file>imgNiveles/fondoImgInicio.png</file>
+        <file>sonidos/musicaFondo.mp3</file>
+        <file>sonidos/young-man-being-hurt-95628.mp3</file>
     </qresource>
 </RCC>
